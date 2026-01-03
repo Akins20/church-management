@@ -3,7 +3,6 @@
 import { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { emailService, userService } from '@/services';
-import { Card, Button, Loading } from '@/components/common';
 import {
   PaperAirplaneIcon,
   EnvelopeIcon,
@@ -14,6 +13,7 @@ import {
   ClockIcon,
   XCircleIcon,
 } from '@heroicons/react/24/outline';
+import { PaperAirplaneIcon as PaperAirplaneSolid } from '@heroicons/react/24/solid';
 
 const churchGroups = [
   { value: 'all', label: 'All Members' },
@@ -38,7 +38,10 @@ export default function MessageEmailPage() {
   });
   const [attachedImages, setAttachedImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [notification, setNotification] = useState<{
+    type: 'success' | 'error';
+    message: string;
+  } | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { data: users } = useQuery({
@@ -46,14 +49,14 @@ export default function MessageEmailPage() {
     queryFn: () => userService.getUsers({}, 1, 500),
   });
 
-  const { data: emailStats, isLoading: statsLoading } = useQuery({
+  const { data: emailStats } = useQuery({
     queryKey: ['emailStats'],
     queryFn: emailService.getEmailStats,
   });
 
-  const { data: recentEmails, isLoading: emailsLoading } = useQuery({
+  const { data: recentEmails } = useQuery({
     queryKey: ['recentEmails'],
-    queryFn: () => emailService.getEmails(1, 10),
+    queryFn: () => emailService.getEmails(1, 5),
   });
 
   const sendBroadcastMutation = useMutation({
@@ -61,16 +64,17 @@ export default function MessageEmailPage() {
       return emailService.sendBroadcast(data);
     },
     onSuccess: () => {
-      setShowSuccess(true);
+      setNotification({ type: 'success', message: 'Email sent successfully!' });
       setFormData({ recipientGroup: '', subject: '', body: '' });
       setAttachedImages([]);
       setImagePreviews([]);
-      setTimeout(() => setShowSuccess(false), 3000);
+      setTimeout(() => setNotification(null), 5000);
       queryClient.invalidateQueries({ queryKey: ['emailStats'] });
       queryClient.invalidateQueries({ queryKey: ['recentEmails'] });
     },
-    onError: (error: any) => {
-      console.error('Failed to send email:', error);
+    onError: () => {
+      setNotification({ type: 'error', message: 'Failed to send email. Please try again.' });
+      setTimeout(() => setNotification(null), 5000);
     },
   });
 
@@ -81,7 +85,6 @@ export default function MessageEmailPage() {
       return users.data.map(u => u.email).filter(Boolean);
     }
 
-    // Filter users by role/group
     return users.data
       .filter(u => {
         if (group === 'staff') {
@@ -90,7 +93,6 @@ export default function MessageEmailPage() {
         if (group === 'newcomer') {
           return u.role?.toLowerCase() === 'newcomer';
         }
-        // For other groups, check ministries or group field
         if (u.group?.toLowerCase() === group.toLowerCase()) {
           return true;
         }
@@ -125,13 +127,13 @@ export default function MessageEmailPage() {
     const imageFiles = files.filter(file => file.type.startsWith('image/'));
 
     if (imageFiles.length + attachedImages.length > 5) {
-      alert('Maximum 5 images allowed');
+      setNotification({ type: 'error', message: 'Maximum 5 images allowed' });
+      setTimeout(() => setNotification(null), 3000);
       return;
     }
 
     setAttachedImages(prev => [...prev, ...imageFiles]);
 
-    // Create previews
     imageFiles.forEach(file => {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -156,7 +158,6 @@ export default function MessageEmailPage() {
       return;
     }
 
-    // For now, include image references in body (backend should handle image uploads separately)
     let bodyWithImages = formData.body;
     if (attachedImages.length > 0) {
       bodyWithImages += `\n\n[${attachedImages.length} image(s) attached]`;
@@ -182,89 +183,84 @@ export default function MessageEmailPage() {
     : 0;
 
   const stats = [
-    {
-      name: 'Total Sent',
-      value: emailStats?.totalSent || 0,
-      icon: PaperAirplaneIcon,
-      color: 'bg-blue-500',
-    },
-    {
-      name: 'Delivered',
-      value: emailStats?.delivered || 0,
-      icon: CheckCircleIcon,
-      color: 'bg-green-500',
-    },
-    {
-      name: 'Pending',
-      value: emailStats?.pending || 0,
-      icon: ClockIcon,
-      color: 'bg-yellow-500',
-    },
-    {
-      name: 'Failed',
-      value: emailStats?.failed || 0,
-      icon: XCircleIcon,
-      color: 'bg-red-500',
-    },
+    { name: 'Sent', value: emailStats?.totalSent || 0, icon: PaperAirplaneIcon, color: 'bg-blue-500' },
+    { name: 'Delivered', value: emailStats?.delivered || 0, icon: CheckCircleIcon, color: 'bg-green-500' },
+    { name: 'Pending', value: emailStats?.pending || 0, icon: ClockIcon, color: 'bg-amber-500' },
+    { name: 'Failed', value: emailStats?.failed || 0, icon: XCircleIcon, color: 'bg-red-500' },
   ];
 
-  if (statsLoading || emailsLoading) {
-    return <Loading fullScreen text="Loading email center..." />;
-  }
-
   return (
-    <div className="space-y-3">
-      {/* Header & Stats Row */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-gray-900">Send Email</h1>
-          <p className="text-gray-600 text-sm">Send emails to church groups and members</p>
-        </div>
-        <div className="flex gap-3">
-          {stats.map((stat) => {
-            const Icon = stat.icon;
-            return (
-              <div key={stat.name} className="flex items-center bg-white border border-gray-200 rounded-lg px-3 py-1.5">
-                <div className={`${stat.color} p-1 rounded mr-2`}>
-                  <Icon className="h-3 w-3 text-white" />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">{stat.name}</p>
-                  <p className="text-sm font-bold text-gray-900">{stat.value}</p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Success Message */}
-      {showSuccess && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-2 flex items-center">
-          <CheckCircleIcon className="h-5 w-5 text-green-600 mr-2" />
-          <p className="font-medium text-green-800 text-sm">Email Sent Successfully!</p>
+    <div className="h-screen flex flex-col bg-gray-50">
+      {/* Notification */}
+      {notification && (
+        <div
+          className={`px-4 py-3 flex items-center justify-between shrink-0 ${
+            notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
+          }`}
+        >
+          <div className="flex items-center space-x-2 text-white">
+            {notification.type === 'success' ? (
+              <CheckCircleIcon className="w-5 h-5" />
+            ) : (
+              <XCircleIcon className="w-5 h-5" />
+            )}
+            <span className="font-medium">{notification.message}</span>
+          </div>
+          <button onClick={() => setNotification(null)} className="text-white/80 hover:text-white">
+            <XMarkIcon className="w-5 h-5" />
+          </button>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 px-6 py-4 shrink-0">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Compose Email</h1>
+            <p className="text-gray-500 text-sm mt-0.5">Send emails to church groups and members</p>
+          </div>
+          <div className="flex items-center space-x-3">
+            {stats.map((stat) => {
+              const Icon = stat.icon;
+              return (
+                <div key={stat.name} className="flex items-center bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
+                  <div className={`${stat.color} p-1.5 rounded-lg mr-2`}>
+                    <Icon className="h-3.5 w-3.5 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">{stat.name}</p>
+                    <p className="text-sm font-bold text-gray-900">{stat.value}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 flex min-h-0 p-6">
         {/* Compose Form */}
-        <div className="lg:col-span-2">
-          <Card title="Compose Email">
-            <form onSubmit={handleSubmit} className="space-y-3">
-              {/* Recipient Group & Subject - Same Row */}
-              <div className="grid grid-cols-2 gap-3">
+        <div className="flex-1 mr-6">
+          <div className="bg-white rounded-2xl border border-gray-200 h-full flex flex-col">
+            <div className="p-5 border-b border-gray-200 shrink-0">
+              <h2 className="font-semibold text-gray-900">New Message</h2>
+            </div>
+            <form onSubmit={handleSubmit} className="flex-1 flex flex-col p-5">
+              {/* Recipient & Subject Row */}
+              <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Recipient Group <span className="text-red-500">*</span>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Recipients <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
-                    <UserGroupIcon className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <UserGroupIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <select
                       name="recipientGroup"
                       value={formData.recipientGroup}
                       onChange={handleChange}
-                      className={`w-full pl-8 pr-4 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 appearance-none bg-white ${
-                        errors.recipientGroup ? 'border-red-300' : 'border-gray-300'
+                      className={`w-full pl-9 pr-4 py-2.5 bg-gray-50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white appearance-none text-sm text-gray-900 ${
+                        errors.recipientGroup ? 'border-red-300' : 'border-gray-200'
                       }`}
                     >
                       <option value="">Select a group</option>
@@ -274,31 +270,36 @@ export default function MessageEmailPage() {
                         </option>
                       ))}
                     </select>
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                      <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
                   </div>
                   {errors.recipientGroup && (
                     <p className="mt-1 text-xs text-red-500">{errors.recipientGroup}</p>
                   )}
                   {formData.recipientGroup && (
                     <p className="mt-1 text-xs text-blue-600">
-                      {recipientCount} recipient{recipientCount !== 1 ? 's' : ''}
+                      {recipientCount} recipient{recipientCount !== 1 ? 's' : ''} selected
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Subject <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
-                    <EnvelopeIcon className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <EnvelopeIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input
                       type="text"
                       name="subject"
                       value={formData.subject}
                       onChange={handleChange}
                       placeholder="Email subject"
-                      className={`w-full pl-8 pr-4 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-400 ${
-                        errors.subject ? 'border-red-300' : 'border-gray-300'
+                      className={`w-full pl-9 pr-4 py-2.5 bg-gray-50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white text-sm text-gray-900 placeholder-gray-400 ${
+                        errors.subject ? 'border-red-300' : 'border-gray-200'
                       }`}
                     />
                   </div>
@@ -309,8 +310,8 @@ export default function MessageEmailPage() {
               </div>
 
               {/* Message Body */}
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+              <div className="flex-1 flex flex-col mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Message <span className="text-red-500">*</span>
                 </label>
                 <textarea
@@ -318,9 +319,8 @@ export default function MessageEmailPage() {
                   value={formData.body}
                   onChange={handleChange}
                   placeholder="Write your message here..."
-                  rows={5}
-                  className={`w-full p-3 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-400 resize-none ${
-                    errors.body ? 'border-red-300' : 'border-gray-300'
+                  className={`flex-1 p-3 bg-gray-50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white text-sm text-gray-900 placeholder-gray-400 resize-none ${
+                    errors.body ? 'border-red-300' : 'border-gray-200'
                   }`}
                 />
                 {errors.body && (
@@ -328,112 +328,135 @@ export default function MessageEmailPage() {
                 )}
               </div>
 
-              {/* Image Upload & Submit - Same Row */}
-              <div className="flex items-center gap-3">
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleImageUpload}
-                  accept="image/*"
-                  multiple
-                  className="hidden"
-                />
+              {/* Actions Row */}
+              <div className="flex items-center justify-between shrink-0">
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleImageUpload}
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex items-center px-3 py-2 text-sm border border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-blue-400 hover:text-blue-600 transition-colors"
+                  >
+                    <PhotoIcon className="h-4 w-4 mr-1.5" />
+                    Attach Images
+                  </button>
+
+                  {imagePreviews.length > 0 && (
+                    <div className="flex space-x-2">
+                      {imagePreviews.map((preview, index) => (
+                        <div key={index} className="relative">
+                          <img
+                            src={preview}
+                            alt={`Preview ${index + 1}`}
+                            className="h-10 w-10 object-cover rounded-lg border border-gray-200"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeImage(index)}
+                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600"
+                          >
+                            <XMarkIcon className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center px-3 py-2 text-sm border border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-400 hover:text-blue-600 transition-colors"
-                >
-                  <PhotoIcon className="h-4 w-4 mr-1" />
-                  Attach Images
-                </button>
-
-                {/* Image Previews */}
-                {imagePreviews.length > 0 && (
-                  <div className="flex gap-2">
-                    {imagePreviews.map((preview, index) => (
-                      <div key={index} className="relative">
-                        <img
-                          src={preview}
-                          alt={`Preview ${index + 1}`}
-                          className="h-10 w-10 object-cover rounded border border-gray-200"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeImage(index)}
-                          className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600"
-                        >
-                          <XMarkIcon className="h-3 w-3" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <div className="flex-1" />
-
-                <Button
                   type="submit"
-                  variant="primary"
-                  isLoading={sendBroadcastMutation.isPending}
+                  disabled={sendBroadcastMutation.isPending}
+                  className="flex items-center px-5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Send Email
-                </Button>
+                  {sendBroadcastMutation.isPending ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <PaperAirplaneSolid className="w-4 h-4 mr-2" />
+                      Send Email
+                    </>
+                  )}
+                </button>
               </div>
             </form>
-          </Card>
+          </div>
         </div>
 
-        {/* Recent Emails Sidebar */}
-        <div className="space-y-3">
-          <Card title="Recent Emails">
-            <div className="space-y-2">
+        {/* Right Sidebar */}
+        <div className="w-72 flex flex-col space-y-4">
+          {/* Recent Emails */}
+          <div className="bg-white rounded-2xl border border-gray-200 flex-1 flex flex-col">
+            <div className="p-4 border-b border-gray-200 shrink-0">
+              <h2 className="font-semibold text-gray-900">Recent Emails</h2>
+            </div>
+            <div className="flex-1 p-4">
               {recentEmails?.data && recentEmails.data.length > 0 ? (
-                recentEmails.data.slice(0, 4).map((email) => (
-                  <div
-                    key={email.id}
-                    className="p-2 bg-gray-50 rounded-lg border border-gray-100"
-                  >
-                    <div className="flex items-center justify-between">
-                      <p className="font-medium text-gray-900 text-xs truncate flex-1">
-                        {email.subject}
-                      </p>
-                      <span
-                        className={`px-1.5 py-0.5 text-xs font-medium rounded-full ml-2 ${
-                          email.status === 'SENT'
-                            ? 'bg-green-100 text-green-800'
-                            : email.status === 'PENDING'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-red-100 text-red-800'
-                        }`}
-                      >
-                        {email.status}
-                      </span>
+                <div className="space-y-2">
+                  {recentEmails.data.slice(0, 5).map((email) => (
+                    <div
+                      key={email.id}
+                      className="p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="font-medium text-gray-900 text-sm truncate flex-1 mr-2">
+                          {email.subject}
+                        </p>
+                        <span
+                          className={`px-2 py-0.5 text-xs font-medium rounded-full shrink-0 ${
+                            email.status === 'SENT'
+                              ? 'bg-green-100 text-green-700'
+                              : email.status === 'PENDING'
+                              ? 'bg-amber-100 text-amber-700'
+                              : 'bg-red-100 text-red-700'
+                          }`}
+                        >
+                          {email.status}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs text-gray-500 truncate">{email.to}</p>
+                        <span className="text-xs text-gray-400">
+                          {new Date(email.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between mt-1">
-                      <p className="text-xs text-gray-500 truncate">To: {email.to}</p>
-                      <span className="text-xs text-gray-400">
-                        {new Date(email.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      </span>
-                    </div>
-                  </div>
-                ))
+                  ))}
+                </div>
               ) : (
-                <p className="text-center text-gray-500 py-2 text-sm">No recent emails</p>
+                <div className="flex flex-col items-center justify-center h-full text-center">
+                  <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                    <EnvelopeIcon className="w-6 h-6 text-gray-400" />
+                  </div>
+                  <p className="text-gray-500 text-sm">No recent emails</p>
+                </div>
               )}
             </div>
-          </Card>
+          </div>
 
           {/* Tips Card */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
-            <div className="flex items-start">
-              <svg className="h-4 w-4 text-blue-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <div className="ml-2">
-                <h3 className="text-xs font-medium text-blue-800">Tips</h3>
-                <ul className="mt-1 text-xs text-blue-700 space-y-0.5">
-                  <li>• Keep subject lines concise</li>
-                  <li>• Use images sparingly</li>
+          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 shrink-0">
+            <div className="flex items-start space-x-3">
+              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
+                <svg className="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-blue-900">Email Tips</h3>
+                <ul className="mt-1.5 text-xs text-blue-700 space-y-1">
+                  <li>Keep subject lines clear and concise</li>
+                  <li>Use images sparingly for better delivery</li>
+                  <li>Test with a small group first</li>
                 </ul>
               </div>
             </div>

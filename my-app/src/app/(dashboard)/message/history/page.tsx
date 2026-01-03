@@ -2,54 +2,42 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { attendanceService } from '@/services';
+import { emailService } from '@/services';
 import {
-  CalendarIcon,
+  EnvelopeIcon,
   FunnelIcon,
-  ArrowDownTrayIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  UserGroupIcon,
-  ClockIcon,
   CheckCircleIcon,
+  ClockIcon,
   XCircleIcon,
-  ExclamationCircleIcon,
+  MagnifyingGlassIcon,
+  CalendarIcon,
 } from '@heroicons/react/24/outline';
 
-const ITEMS_PER_PAGE = 8;
+const ITEMS_PER_PAGE = 10;
 
 const statusConfig = {
-  present: { label: 'Present', color: 'bg-green-100 text-green-700', icon: CheckCircleIcon },
-  absent: { label: 'Absent', color: 'bg-red-100 text-red-700', icon: XCircleIcon },
-  late: { label: 'Late', color: 'bg-amber-100 text-amber-700', icon: ExclamationCircleIcon },
-  excused: { label: 'Excused', color: 'bg-blue-100 text-blue-700', icon: CheckCircleIcon },
+  SENT: { label: 'Sent', color: 'bg-green-100 text-green-700', icon: CheckCircleIcon },
+  PENDING: { label: 'Pending', color: 'bg-amber-100 text-amber-700', icon: ClockIcon },
+  FAILED: { label: 'Failed', color: 'bg-red-100 text-red-700', icon: XCircleIcon },
+  DELIVERED: { label: 'Delivered', color: 'bg-blue-100 text-blue-700', icon: CheckCircleIcon },
 };
 
-export default function PeopleHistoryPage() {
+export default function EmailHistoryPage() {
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState({
-    startDate: '',
-    endDate: '',
+    search: '',
     status: '',
   });
   const [showFilters, setShowFilters] = useState(false);
 
-  // Fetch attendance records
   const { data, isLoading } = useQuery({
-    queryKey: ['attendance', 'history', page, filters],
-    queryFn: () =>
-      attendanceService.getAttendance(
-        {
-          startDate: filters.startDate || undefined,
-          endDate: filters.endDate || undefined,
-          status: filters.status || undefined,
-        },
-        page,
-        ITEMS_PER_PAGE
-      ),
+    queryKey: ['emails', 'history', page, filters],
+    queryFn: () => emailService.getEmails(page, ITEMS_PER_PAGE),
   });
 
-  const attendance = data?.attendance || [];
+  const emails = data?.data || [];
   const totalPages = data?.totalPages || 1;
   const total = data?.total || 0;
 
@@ -75,36 +63,24 @@ export default function PeopleHistoryPage() {
   };
 
   const clearFilters = () => {
-    setFilters({ startDate: '', endDate: '', status: '' });
+    setFilters({ search: '', status: '' });
     setPage(1);
   };
 
-  const exportToCSV = () => {
-    if (!attendance.length) return;
+  const hasActiveFilters = filters.search || filters.status;
 
-    const headers = ['Date', 'Name', 'Email', 'Status', 'Check-in Time', 'Check-out Time'];
-    const rows = attendance.map((record) => {
-      const user = typeof record.userId === 'object' ? record.userId : null;
-      return [
-        formatDate(record.date),
-        user ? `${user.firstName} ${user.lastName}` : 'Unknown',
-        user?.email || '',
-        record.status,
-        formatTime(record.checkInTime),
-        record.checkOutTime ? formatTime(record.checkOutTime) : '',
-      ];
-    });
-
-    const csv = [headers, ...rows].map((row) => row.join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `attendance-${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-  };
-
-  const hasActiveFilters = filters.startDate || filters.endDate || filters.status;
+  // Filter emails client-side for now
+  const filteredEmails = emails.filter((email) => {
+    if (filters.status && email.status !== filters.status) return false;
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      return (
+        email.subject?.toLowerCase().includes(searchLower) ||
+        email.to?.toLowerCase().includes(searchLower)
+      );
+    }
+    return true;
+  });
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
@@ -112,33 +88,21 @@ export default function PeopleHistoryPage() {
       <div className="bg-white border-b border-gray-200 px-6 py-4 shrink-0">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Attendance History</h1>
-            <p className="text-gray-500 text-sm mt-0.5">View and export past attendance records</p>
+            <h1 className="text-2xl font-bold text-gray-900">Email History</h1>
+            <p className="text-gray-500 text-sm mt-0.5">View all sent emails and their delivery status</p>
           </div>
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className={`px-4 py-2 rounded-xl flex items-center space-x-2 transition-colors text-sm ${
-                showFilters || hasActiveFilters
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              <FunnelIcon className="w-4 h-4" />
-              <span>Filters</span>
-              {hasActiveFilters && (
-                <span className="w-2 h-2 bg-blue-500 rounded-full" />
-              )}
-            </button>
-            <button
-              onClick={exportToCSV}
-              disabled={!attendance.length}
-              className="px-4 py-2 bg-gray-900 text-white rounded-xl flex items-center space-x-2 hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-            >
-              <ArrowDownTrayIcon className="w-4 h-4" />
-              <span>Export CSV</span>
-            </button>
-          </div>
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`px-4 py-2 rounded-xl flex items-center space-x-2 transition-colors text-sm ${
+              showFilters || hasActiveFilters
+                ? 'bg-blue-100 text-blue-700'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            <FunnelIcon className="w-4 h-4" />
+            <span>Filters</span>
+            {hasActiveFilters && <span className="w-2 h-2 bg-blue-500 rounded-full" />}
+          </button>
         </div>
 
         {/* Filters Panel */}
@@ -146,47 +110,30 @@ export default function PeopleHistoryPage() {
           <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
             <div className="flex items-end space-x-4">
               <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Start Date
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
                 <div className="relative">
-                  <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
-                    type="date"
-                    value={filters.startDate}
-                    onChange={(e) => handleFilterChange('startDate', e.target.value)}
+                    type="text"
+                    value={filters.search}
+                    onChange={(e) => handleFilterChange('search', e.target.value)}
+                    placeholder="Search by subject or recipient..."
                     className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   />
                 </div>
               </div>
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  End Date
-                </label>
-                <div className="relative">
-                  <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input
-                    type="date"
-                    value={filters.endDate}
-                    onChange={(e) => handleFilterChange('endDate', e.target.value)}
-                    className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                  />
-                </div>
-              </div>
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Status
-                </label>
+              <div className="w-48">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
                 <select
                   value={filters.status}
                   onChange={(e) => handleFilterChange('status', e.target.value)}
                   className="w-full px-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none text-sm"
                 >
                   <option value="">All Statuses</option>
-                  <option value="present">Present</option>
-                  <option value="late">Late</option>
-                  <option value="absent">Absent</option>
-                  <option value="excused">Excused</option>
+                  <option value="SENT">Sent</option>
+                  <option value="PENDING">Pending</option>
+                  <option value="DELIVERED">Delivered</option>
+                  <option value="FAILED">Failed</option>
                 </select>
               </div>
               {hasActiveFilters && (
@@ -208,7 +155,7 @@ export default function PeopleHistoryPage() {
         <div className="px-6 py-3 bg-white border-b border-gray-200 shrink-0">
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-600">
-              Showing {attendance.length} of {total} records
+              Showing {filteredEmails.length} of {total} emails
             </span>
             <div className="flex items-center space-x-4">
               {Object.entries(statusConfig).map(([key, config]) => (
@@ -227,14 +174,14 @@ export default function PeopleHistoryPage() {
             <div className="flex items-center justify-center h-full">
               <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
             </div>
-          ) : attendance.length === 0 ? (
+          ) : filteredEmails.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full">
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                <UserGroupIcon className="w-8 h-8 text-gray-400" />
+                <EnvelopeIcon className="w-8 h-8 text-gray-400" />
               </div>
-              <p className="text-gray-500 font-medium">No attendance records found</p>
+              <p className="text-gray-500 font-medium">No emails found</p>
               <p className="text-gray-400 text-sm mt-1">
-                {hasActiveFilters ? 'Try adjusting your filters' : 'Check-in some members to see history'}
+                {hasActiveFilters ? 'Try adjusting your filters' : 'Send some emails to see them here'}
               </p>
             </div>
           ) : (
@@ -243,16 +190,13 @@ export default function PeopleHistoryPage() {
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
                     <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Member
+                      Subject
                     </th>
                     <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Date
+                      Recipient
                     </th>
                     <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Check-in
-                    </th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Check-out
+                      Sent At
                     </th>
                     <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Status
@@ -260,54 +204,44 @@ export default function PeopleHistoryPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {attendance.map((record) => {
-                    const user = typeof record.userId === 'object' ? record.userId : null;
-                    const status = statusConfig[record.status as keyof typeof statusConfig];
+                  {filteredEmails.map((email) => {
+                    const status = statusConfig[email.status as keyof typeof statusConfig];
                     const StatusIcon = status?.icon || CheckCircleIcon;
 
                     return (
-                      <tr key={record._id} className="hover:bg-gray-50 transition-colors">
+                      <tr key={email.id} className="hover:bg-gray-50 transition-colors">
                         <td className="py-3 px-4">
                           <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-medium text-xs">
-                              {user ? `${user.firstName[0]}${user.lastName[0]}` : '?'}
+                            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white">
+                              <EnvelopeIcon className="w-4 h-4" />
                             </div>
-                            <div>
-                              <p className="font-medium text-gray-900 text-sm">
-                                {user ? `${user.firstName} ${user.lastName}` : 'Unknown'}
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-gray-900 text-sm truncate max-w-xs">
+                                {email.subject || 'No Subject'}
                               </p>
-                              <p className="text-xs text-gray-500">{user?.email || ''}</p>
                             </div>
                           </div>
                         </td>
                         <td className="py-3 px-4">
-                          <div className="flex items-center space-x-2 text-gray-700 text-sm">
-                            <CalendarIcon className="w-4 h-4 text-gray-400" />
-                            <span>{formatDate(record.date)}</span>
-                          </div>
+                          <p className="text-sm text-gray-700 truncate max-w-xs">{email.to}</p>
                         </td>
                         <td className="py-3 px-4">
-                          <div className="flex items-center space-x-2 text-gray-700 text-sm">
-                            <ClockIcon className="w-4 h-4 text-gray-400" />
-                            <span>{formatTime(record.checkInTime)}</span>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">
-                          {record.checkOutTime ? (
-                            <div className="flex items-center space-x-2 text-gray-700 text-sm">
-                              <ClockIcon className="w-4 h-4 text-gray-400" />
-                              <span>{formatTime(record.checkOutTime)}</span>
+                          <div className="text-sm">
+                            <div className="flex items-center space-x-2 text-gray-700">
+                              <CalendarIcon className="w-4 h-4 text-gray-400" />
+                              <span>{formatDate(email.createdAt)}</span>
                             </div>
-                          ) : (
-                            <span className="text-gray-400 text-sm">—</span>
-                          )}
+                            <p className="text-xs text-gray-500 ml-6">{formatTime(email.createdAt)}</p>
+                          </div>
                         </td>
                         <td className="py-3 px-4">
                           <span
-                            className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${status?.color || 'bg-gray-100 text-gray-700'}`}
+                            className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${
+                              status?.color || 'bg-gray-100 text-gray-700'
+                            }`}
                           >
                             <StatusIcon className="w-3.5 h-3.5" />
-                            <span>{status?.label || record.status}</span>
+                            <span>{status?.label || email.status}</span>
                           </span>
                         </td>
                       </tr>
