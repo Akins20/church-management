@@ -12,6 +12,7 @@ import {
   XCircleIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  ArrowLeftIcon,
 } from '@heroicons/react/24/outline';
 import { CheckCircleIcon as CheckCircleSolid } from '@heroicons/react/24/solid';
 
@@ -117,6 +118,11 @@ export default function NotepadNotesPage() {
     setLastSaved(new Date(note.updatedAt));
   };
 
+  const handleBack = () => {
+    setIsEditing(false);
+    setCurrentNote({ id: '', title: '', content: '' });
+  };
+
   const handleSave = () => {
     if (!currentNote.title.trim()) {
       setNotification({ type: 'error', message: 'Please enter a title for your note' });
@@ -161,7 +167,7 @@ export default function NotepadNotesPage() {
             ) : (
               <XCircleIcon className="w-5 h-5" />
             )}
-            <span className="font-medium">{notification.message}</span>
+            <span className="font-medium text-sm">{notification.message}</span>
           </div>
           <button onClick={() => setNotification(null)} className="text-white/80 hover:text-white">
             <XCircleIcon className="w-5 h-5" />
@@ -170,26 +176,37 @@ export default function NotepadNotesPage() {
       )}
 
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 shrink-0">
+      <div className="bg-white border-b border-gray-200 px-4 md:px-6 py-4 shrink-0">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Notes</h1>
-            <p className="text-gray-500 text-sm mt-0.5">Create and manage your notes</p>
+          <div className="flex items-center">
+            {/* Back button on mobile when editing */}
+            {isEditing && (
+              <button
+                onClick={handleBack}
+                className="mr-3 p-2 -ml-2 rounded-xl hover:bg-gray-100 lg:hidden"
+              >
+                <ArrowLeftIcon className="w-5 h-5 text-gray-600" />
+              </button>
+            )}
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900">Notes</h1>
+              <p className="text-gray-500 text-xs md:text-sm mt-0.5 hidden sm:block">Create and manage your notes</p>
+            </div>
           </div>
           <button
             onClick={handleNewNote}
-            className="flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-xl transition-colors"
+            className="flex items-center px-3 md:px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-xl transition-colors text-sm"
           >
-            <PlusIcon className="w-4 h-4 mr-2" />
-            New Note
+            <PlusIcon className="w-4 h-4 md:mr-2" />
+            <span className="hidden md:inline">New Note</span>
           </button>
         </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex min-h-0 p-6">
-        {/* Notes List */}
-        <div className="w-72 mr-6 flex flex-col">
+      <div className="flex-1 flex flex-col lg:flex-row min-h-0 p-4 md:p-6 gap-4">
+        {/* Notes List - Hidden on mobile when editing */}
+        <div className={`lg:w-72 flex flex-col shrink-0 ${isEditing ? 'hidden lg:flex' : 'flex'}`}>
           <div className="bg-white rounded-2xl border border-gray-200 flex-1 flex flex-col">
             <div className="p-4 border-b border-gray-200 shrink-0">
               <div className="flex items-center justify-between">
@@ -200,13 +217,13 @@ export default function NotepadNotesPage() {
               </div>
             </div>
 
-            <div className="flex-1 p-4 min-h-0">
+            <div className="flex-1 p-4 min-h-0 overflow-y-auto">
               {isLoading ? (
                 <div className="flex items-center justify-center h-full">
                   <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
                 </div>
               ) : notes.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center">
+                <div className="flex flex-col items-center justify-center h-full text-center py-8">
                   <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
                     <DocumentTextIcon className="w-6 h-6 text-gray-400" />
                   </div>
@@ -257,14 +274,14 @@ export default function NotepadNotesPage() {
                     <button
                       onClick={() => setPage((p) => Math.max(1, p - 1))}
                       disabled={page === 1}
-                      className="p-1 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <ChevronLeftIcon className="w-4 h-4 text-gray-700" />
                     </button>
                     <button
                       onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                       disabled={page === totalPages}
-                      className="p-1 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <ChevronRightIcon className="w-4 h-4 text-gray-700" />
                     </button>
@@ -275,8 +292,8 @@ export default function NotepadNotesPage() {
           </div>
         </div>
 
-        {/* Note Editor */}
-        <div className="flex-1 flex flex-col">
+        {/* Note Editor - Full width on mobile when editing */}
+        <div className={`flex-1 flex flex-col min-w-0 ${!isEditing ? 'hidden lg:flex' : 'flex'}`}>
           <div className="bg-white rounded-2xl border border-gray-200 flex-1 flex flex-col">
             {isEditing ? (
               <>
@@ -287,7 +304,7 @@ export default function NotepadNotesPage() {
                     value={currentNote.title}
                     onChange={(e) => setCurrentNote((prev) => ({ ...prev, title: e.target.value }))}
                     placeholder="Note title..."
-                    className="w-full text-xl font-bold text-gray-900 border-0 focus:outline-none placeholder-gray-400"
+                    className="w-full text-lg md:text-xl font-bold text-gray-900 border-0 focus:outline-none placeholder-gray-400"
                   />
                 </div>
 
@@ -302,9 +319,9 @@ export default function NotepadNotesPage() {
                 </div>
 
                 {/* Editor Footer */}
-                <div className="p-4 border-t border-gray-200 shrink-0">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center text-sm text-gray-500">
+                <div className="p-3 md:p-4 border-t border-gray-200 shrink-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div className="flex items-center text-xs md:text-sm text-gray-500">
                       {isSaving || saveNoteMutation.isPending ? (
                         <>
                           <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mr-2" />
@@ -313,7 +330,8 @@ export default function NotepadNotesPage() {
                       ) : lastSaved ? (
                         <>
                           <CheckCircleSolid className="w-4 h-4 mr-1.5 text-green-500" />
-                          Saved {lastSaved.toLocaleTimeString()}
+                          <span className="hidden sm:inline">Saved {lastSaved.toLocaleTimeString()}</span>
+                          <span className="sm:hidden">Saved</span>
                         </>
                       ) : (
                         <>
@@ -322,15 +340,15 @@ export default function NotepadNotesPage() {
                         </>
                       )}
                     </div>
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-2 sm:space-x-3">
                       {currentNote.id && (
                         <button
                           onClick={handleDelete}
                           disabled={deleteNoteMutation.isPending}
                           className="flex items-center px-3 py-2 text-red-600 hover:bg-red-50 rounded-xl transition-colors text-sm disabled:opacity-50"
                         >
-                          <TrashIcon className="w-4 h-4 mr-1.5" />
-                          Delete
+                          <TrashIcon className="w-4 h-4 sm:mr-1.5" />
+                          <span className="hidden sm:inline">Delete</span>
                         </button>
                       )}
                       <button
@@ -367,9 +385,9 @@ export default function NotepadNotesPage() {
             )}
           </div>
 
-          {/* Tips Card */}
+          {/* Tips Card - Hidden on mobile */}
           {isEditing && (
-            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-2xl p-4 shrink-0">
+            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-2xl p-4 shrink-0 hidden md:block">
               <div className="flex items-start space-x-3">
                 <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
                   <svg className="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">

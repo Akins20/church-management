@@ -119,38 +119,38 @@ export default function MemberDashboard() {
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-5 shrink-0">
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-4 md:px-6 py-4 md:py-5 shrink-0">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white">Welcome back, {user?.firstName}!</h1>
-            <p className="text-blue-100 text-sm mt-0.5">
+            <h1 className="text-lg md:text-2xl font-bold text-white">Welcome, {user?.firstName}!</h1>
+            <p className="text-blue-100 text-xs md:text-sm mt-0.5 hidden sm:block">
               {isStaffOrAdmin ? 'Manage your church operations from here' : "Here's what's happening at church"}
             </p>
           </div>
-          <div className="text-right text-blue-100 text-sm">
+          <div className="text-right text-blue-100 text-xs md:text-sm">
             <p className="font-medium text-white">
-              {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+              {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
             </p>
-            <p>{new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</p>
+            <p className="hidden sm:block">{new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</p>
           </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 p-6 min-h-0">
-        <div className="h-full flex flex-col space-y-6">
+      <div className="flex-1 p-4 md:p-6 min-h-0 overflow-y-auto">
+        <div className="h-full flex flex-col space-y-4 md:space-y-6">
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 shrink-0">
             {stats.map((stat) => {
               const Icon = stat.icon;
               return (
-                <div key={stat.name} className="bg-white rounded-2xl border border-gray-200 p-4 flex items-center space-x-4">
-                  <div className={`bg-gradient-to-br ${stat.color} p-3 rounded-xl`}>
-                    <Icon className="w-5 h-5 text-white" />
+                <div key={stat.name} className="bg-white rounded-xl md:rounded-2xl border border-gray-200 p-3 md:p-4 flex items-center space-x-3 md:space-x-4">
+                  <div className={`bg-gradient-to-br ${stat.color} p-2 md:p-3 rounded-lg md:rounded-xl`}>
+                    <Icon className="w-4 md:w-5 h-4 md:h-5 text-white" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">{stat.name}</p>
-                    <p className="text-xl font-bold text-gray-900">{stat.value}</p>
+                    <p className="text-[10px] md:text-xs text-gray-500 truncate">{stat.name}</p>
+                    <p className="text-lg md:text-xl font-bold text-gray-900">{stat.value}</p>
                   </div>
                 </div>
               );
@@ -158,28 +158,28 @@ export default function MemberDashboard() {
           </div>
 
           {/* Main Content */}
-          <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-0">
+          <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 min-h-0">
             {/* Quick Actions */}
             <div className="lg:col-span-1 flex flex-col">
-              <div className="bg-white rounded-2xl border border-gray-200 flex-1 flex flex-col">
-                <div className="p-4 border-b border-gray-200 shrink-0">
-                  <h2 className="font-semibold text-gray-900">Quick Actions</h2>
+              <div className="bg-white rounded-xl md:rounded-2xl border border-gray-200 flex-1 flex flex-col">
+                <div className="p-3 md:p-4 border-b border-gray-200 shrink-0">
+                  <h2 className="font-semibold text-gray-900 text-sm md:text-base">Quick Actions</h2>
                 </div>
-                <div className="p-4 flex-1">
-                  <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 md:p-4 flex-1">
+                  <div className="grid grid-cols-4 lg:grid-cols-2 gap-2 md:gap-3">
                     {quickActions.map((action) => {
                       const Icon = action.icon;
                       return (
                         <Link
                           key={action.name}
                           href={action.href}
-                          className="flex flex-col items-center p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors text-center"
+                          className="flex flex-col items-center p-2 md:p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors text-center"
                         >
-                          <div className={`${action.color} p-2.5 rounded-xl mb-2`}>
-                            <Icon className="w-5 h-5 text-white" />
+                          <div className={`${action.color} p-2 md:p-2.5 rounded-lg md:rounded-xl mb-1 md:mb-2`}>
+                            <Icon className="w-4 md:w-5 h-4 md:h-5 text-white" />
                           </div>
-                          <span className="text-sm font-medium text-gray-900">{action.name}</span>
-                          <span className="text-[10px] text-gray-500">{action.description}</span>
+                          <span className="text-xs md:text-sm font-medium text-gray-900">{action.name}</span>
+                          <span className="text-[8px] md:text-[10px] text-gray-500 hidden md:block">{action.description}</span>
                         </Link>
                       );
                     })}
@@ -190,11 +190,11 @@ export default function MemberDashboard() {
 
             {/* Middle Column - Current Service */}
             <div className="lg:col-span-1 flex flex-col">
-              <div className="bg-white rounded-2xl border border-gray-200 flex-1 flex flex-col">
-                <div className="p-4 border-b border-gray-200 shrink-0">
-                  <h2 className="font-semibold text-gray-900">Today's Service</h2>
+              <div className="bg-white rounded-xl md:rounded-2xl border border-gray-200 flex-1 flex flex-col">
+                <div className="p-3 md:p-4 border-b border-gray-200 shrink-0">
+                  <h2 className="font-semibold text-gray-900 text-sm md:text-base">Today's Service</h2>
                 </div>
-                <div className="p-4 flex-1 flex flex-col">
+                <div className="p-3 md:p-4 flex-1 flex flex-col">
                   {currentService ? (
                     <div className="flex-1 flex flex-col">
                       <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100 flex-1">
@@ -245,10 +245,10 @@ export default function MemberDashboard() {
 
             {/* Right Column - Recent Activity */}
             <div className="lg:col-span-1 flex flex-col">
-              <div className="bg-white rounded-2xl border border-gray-200 flex-1 flex flex-col">
-                <div className="p-4 border-b border-gray-200 shrink-0">
+              <div className="bg-white rounded-xl md:rounded-2xl border border-gray-200 flex-1 flex flex-col">
+                <div className="p-3 md:p-4 border-b border-gray-200 shrink-0">
                   <div className="flex items-center justify-between">
-                    <h2 className="font-semibold text-gray-900">
+                    <h2 className="font-semibold text-gray-900 text-sm md:text-base">
                       {isStaffOrAdmin ? 'Recent Notes' : 'Your Attendance'}
                     </h2>
                     <Link
@@ -259,7 +259,7 @@ export default function MemberDashboard() {
                     </Link>
                   </div>
                 </div>
-                <div className="p-4 flex-1 min-h-0">
+                <div className="p-3 md:p-4 flex-1 min-h-0">
                   {isStaffOrAdmin ? (
                     notesList.length > 0 ? (
                       <div className="space-y-2">

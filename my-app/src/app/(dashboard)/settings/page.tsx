@@ -3,12 +3,11 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
-import { selectUser, setUser } from '@/store/slices/authSlice';
+import { selectUser, updateUser } from '@/store/slices/authSlice';
 import { userService, authService } from '@/services';
 import {
   UserCircleIcon,
   KeyIcon,
-  BellIcon,
   ShieldCheckIcon,
   CheckCircleIcon,
   XCircleIcon,
@@ -16,7 +15,7 @@ import {
   EyeSlashIcon,
 } from '@heroicons/react/24/outline';
 
-type TabType = 'profile' | 'password' | 'notifications' | 'security';
+type TabType = 'profile' | 'password' | 'security';
 
 export default function SettingsPage() {
   const dispatch = useAppDispatch();
@@ -50,9 +49,12 @@ export default function SettingsPage() {
 
   // Update profile mutation
   const updateProfileMutation = useMutation({
-    mutationFn: (data: typeof profileForm) => userService.updateUser(user?._id || '', data),
-    onSuccess: (updatedUser) => {
-      dispatch(setUser(updatedUser));
+    mutationFn: (data: typeof profileForm) => userService.updateUser(user?._id || user?.id || '', data),
+    onSuccess: (_, variables) => {
+      // Update Redux state with the form data
+      dispatch(updateUser(variables));
+      // Also update local form state with latest values
+      setProfileForm(variables);
       queryClient.invalidateQueries({ queryKey: ['user'] });
       setNotification({ type: 'success', message: 'Profile updated successfully' });
       setTimeout(() => setNotification(null), 3000);
@@ -104,7 +106,6 @@ export default function SettingsPage() {
   const tabs = [
     { id: 'profile' as TabType, name: 'Profile', icon: UserCircleIcon },
     { id: 'password' as TabType, name: 'Password', icon: KeyIcon },
-    { id: 'notifications' as TabType, name: 'Notifications', icon: BellIcon },
     { id: 'security' as TabType, name: 'Security', icon: ShieldCheckIcon },
   ];
 
@@ -132,31 +133,31 @@ export default function SettingsPage() {
       )}
 
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 shrink-0">
-        <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
+      <div className="bg-white border-b border-gray-200 px-4 md:px-6 py-4 shrink-0">
+        <h1 className="text-xl md:text-2xl font-bold text-gray-900">Settings</h1>
         <p className="text-gray-500 text-sm mt-0.5">Manage your account settings and preferences</p>
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex min-h-0 p-6">
-        {/* Tabs Sidebar */}
-        <div className="w-56 mr-6 shrink-0">
-          <div className="bg-white rounded-2xl border border-gray-200 p-3">
-            <div className="space-y-1">
+      <div className="flex-1 flex flex-col lg:flex-row min-h-0 p-4 md:p-6 gap-4">
+        {/* Tabs - Horizontal on mobile, Vertical sidebar on desktop */}
+        <div className="lg:w-56 shrink-0">
+          <div className="bg-white rounded-2xl border border-gray-200 p-2 md:p-3">
+            <div className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 return (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
+                    className={`flex items-center space-x-2 lg:space-x-3 px-3 lg:px-4 py-2 lg:py-3 rounded-xl transition-all whitespace-nowrap ${
                       activeTab === tab.id
                         ? 'bg-blue-500 text-white'
                         : 'text-gray-600 hover:bg-gray-100'
                     }`}
                   >
-                    <Icon className="w-5 h-5" />
-                    <span className="font-medium text-sm">{tab.name}</span>
+                    <Icon className="w-4 lg:w-5 h-4 lg:h-5" />
+                    <span className="font-medium text-xs lg:text-sm">{tab.name}</span>
                   </button>
                 );
               })}
@@ -320,36 +321,32 @@ export default function SettingsPage() {
                       {changePasswordMutation.isPending ? 'Changing...' : 'Change Password'}
                     </button>
                   </form>
-                </div>
-              </>
-            )}
 
-            {/* Notifications Tab */}
-            {activeTab === 'notifications' && (
-              <>
-                <div className="p-6 border-b border-gray-200 shrink-0">
-                  <h2 className="text-lg font-semibold text-gray-900">Notification Preferences</h2>
-                  <p className="text-sm text-gray-500 mt-1">Choose what notifications you want to receive</p>
-                </div>
-                <div className="flex-1 p-6 overflow-auto">
-                  <div className="max-w-lg space-y-4">
-                    {[
-                      { id: 'email_service', label: 'Service Reminders', desc: 'Get notified about upcoming services' },
-                      { id: 'email_ministry', label: 'Ministry Updates', desc: 'Updates from your joined ministries' },
-                      { id: 'email_announcements', label: 'Announcements', desc: 'General church announcements' },
-                      { id: 'email_events', label: 'Event Invitations', desc: 'Invites to church events' },
-                    ].map((item) => (
-                      <div key={item.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                        <div>
-                          <p className="font-medium text-gray-900">{item.label}</p>
-                          <p className="text-sm text-gray-500">{item.desc}</p>
-                        </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input type="checkbox" className="sr-only peer" defaultChecked />
-                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
-                        </label>
-                      </div>
-                    ))}
+                  {/* Forgot Password Section */}
+                  <div className="mt-8 pt-6 border-t border-gray-200 max-w-lg">
+                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                      <h3 className="font-medium text-amber-900 mb-1">Forgot your current password?</h3>
+                      <p className="text-sm text-amber-700 mb-3">
+                        If you can't remember your current password, we can send a reset link to your email.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (user?.email) {
+                            authService.forgotPassword(user.email).then(() => {
+                              setNotification({ type: 'success', message: 'Password reset link sent to your email' });
+                              setTimeout(() => setNotification(null), 5000);
+                            }).catch(() => {
+                              setNotification({ type: 'error', message: 'Failed to send reset email. Please try again.' });
+                              setTimeout(() => setNotification(null), 3000);
+                            });
+                          }
+                        }}
+                        className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded-xl transition-colors"
+                      >
+                        Send Reset Link
+                      </button>
+                    </div>
                   </div>
                 </div>
               </>
@@ -382,19 +379,6 @@ export default function SettingsPage() {
                             {user?.dateJoined ? new Date(user.dateJoined).toLocaleDateString() : 'N/A'}
                           </span>
                         </div>
-                      </div>
-                    </div>
-
-                    {/* Two-Factor Authentication */}
-                    <div className="p-4 bg-gray-50 rounded-xl">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-medium text-gray-900">Two-Factor Authentication</h3>
-                          <p className="text-sm text-gray-500 mt-1">Add an extra layer of security</p>
-                        </div>
-                        <button className="px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-100 transition-colors text-sm">
-                          Enable
-                        </button>
                       </div>
                     </div>
 

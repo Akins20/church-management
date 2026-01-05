@@ -30,7 +30,12 @@ export const userService = {
   // Update user
   updateUser: async (id: string, userData: Partial<User>): Promise<User> => {
     const response = await apiClient.put(`/users/${id}`, userData);
-    return response.data;
+    // Handle nested response structure
+    const data = response.data;
+    if (data?.data) {
+      return data.data;
+    }
+    return data;
   },
 
   // Update user role

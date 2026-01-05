@@ -16,6 +16,8 @@ import {
   ExclamationTriangleIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  ListBulletIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { CheckCircleIcon as CheckCircleSolid } from '@heroicons/react/24/solid';
 
@@ -35,6 +37,7 @@ export default function PeopleCheckInPage() {
   const queryClient = useQueryClient();
   const [mode, setMode] = useState<CheckInMode>('search');
   const [checkinPage, setCheckinPage] = useState(1);
+  const [showTodayPanel, setShowTodayPanel] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     firstName: '',
     lastName: '',
@@ -231,7 +234,7 @@ export default function PeopleCheckInPage() {
       {/* Notification Banner */}
       {notification && (
         <div
-          className={`px-4 py-3 flex items-center justify-between shrink-0 ${
+          className={`px-3 md:px-4 py-2 md:py-3 flex items-center justify-between shrink-0 ${
             notification.type === 'success'
               ? 'bg-green-500'
               : notification.type === 'error'
@@ -239,275 +242,283 @@ export default function PeopleCheckInPage() {
               : 'bg-amber-500'
           }`}
         >
-          <div className="flex items-center space-x-2 text-white">
-            {notification.type === 'success' && <CheckCircleIcon className="w-5 h-5" />}
-            {notification.type === 'error' && <XCircleIcon className="w-5 h-5" />}
-            {notification.type === 'warning' && <ExclamationTriangleIcon className="w-5 h-5" />}
-            <span className="font-medium">{notification.message}</span>
+          <div className="flex items-center space-x-2 text-white min-w-0">
+            {notification.type === 'success' && <CheckCircleIcon className="w-4 h-4 md:w-5 md:h-5 shrink-0" />}
+            {notification.type === 'error' && <XCircleIcon className="w-4 h-4 md:w-5 md:h-5 shrink-0" />}
+            {notification.type === 'warning' && <ExclamationTriangleIcon className="w-4 h-4 md:w-5 md:h-5 shrink-0" />}
+            <span className="font-medium text-xs md:text-sm truncate">{notification.message}</span>
           </div>
-          <button onClick={() => setNotification(null)} className="text-white/80 hover:text-white">
-            <XCircleIcon className="w-5 h-5" />
+          <button onClick={() => setNotification(null)} className="text-white/80 hover:text-white shrink-0 ml-2">
+            <XCircleIcon className="w-4 h-4 md:w-5 md:h-5" />
           </button>
         </div>
       )}
 
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 px-4 md:px-6 py-3 md:py-4 shrink-0">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-lg md:text-2xl font-bold text-gray-900">People Check-in</h1>
+            <p className="text-gray-500 text-xs md:text-sm mt-0.5 hidden sm:block">Register attendance for church members</p>
+          </div>
+          {/* Mobile toggle for today's check-ins */}
+          <button
+            onClick={() => setShowTodayPanel(true)}
+            className="lg:hidden flex items-center px-3 py-2 bg-blue-100 text-blue-700 rounded-xl text-sm font-medium"
+          >
+            <ListBulletIcon className="w-4 h-4 mr-1.5" />
+            Today ({totalCheckins})
+          </button>
+        </div>
+      </div>
+
       <div className="flex-1 flex min-h-0">
         {/* Left Panel - Check-in Form */}
-        <div className="flex-1 flex flex-col">
-          {/* Header */}
-          <div className="bg-white border-b border-gray-200 px-6 py-4 shrink-0">
-            <h1 className="text-2xl font-bold text-gray-900">People Check-in</h1>
-            <p className="text-gray-500 text-sm mt-0.5">Register attendance for church members</p>
-          </div>
-
-          <div className="flex-1 p-6 flex items-start justify-center">
-          <div className="max-w-xl w-full">
-
-            {/* Mode Indicator */}
-            <div className="mb-4 flex items-center space-x-2">
-              <div
-                className={`px-3 py-1.5 rounded-full text-sm font-medium ${
-                  mode === 'search'
-                    ? 'bg-gray-200 text-gray-700'
-                    : mode === 'quick_checkin'
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-blue-100 text-blue-700'
-                }`}
-              >
-                {mode === 'search' && (
-                  <>
-                    <MagnifyingGlassIcon className="w-4 h-4 inline mr-1" />
-                    Searching...
-                  </>
-                )}
-                {mode === 'quick_checkin' && (
-                  <>
-                    <CheckCircleSolid className="w-4 h-4 inline mr-1" />
-                    Member Found
-                  </>
-                )}
-                {mode === 'new_member' && (
-                  <>
-                    <UserPlusIcon className="w-4 h-4 inline mr-1" />
-                    New Member
-                  </>
+        <div className="flex-1 flex flex-col overflow-y-auto">
+          <div className="flex-1 p-4 md:p-6 flex items-start justify-center">
+            <div className="max-w-xl w-full">
+              {/* Mode Indicator */}
+              <div className="mb-3 md:mb-4 flex items-center space-x-2">
+                <div
+                  className={`px-2.5 md:px-3 py-1 md:py-1.5 rounded-full text-xs md:text-sm font-medium ${
+                    mode === 'search'
+                      ? 'bg-gray-200 text-gray-700'
+                      : mode === 'quick_checkin'
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-blue-100 text-blue-700'
+                  }`}
+                >
+                  {mode === 'search' && (
+                    <>
+                      <MagnifyingGlassIcon className="w-3 h-3 md:w-4 md:h-4 inline mr-1" />
+                      Searching...
+                    </>
+                  )}
+                  {mode === 'quick_checkin' && (
+                    <>
+                      <CheckCircleSolid className="w-3 h-3 md:w-4 md:h-4 inline mr-1" />
+                      Member Found
+                    </>
+                  )}
+                  {mode === 'new_member' && (
+                    <>
+                      <UserPlusIcon className="w-3 h-3 md:w-4 md:h-4 inline mr-1" />
+                      New Member
+                    </>
+                  )}
+                </div>
+                {lookupMutation.isPending && (
+                  <div className="w-3 h-3 md:w-4 md:h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
                 )}
               </div>
-              {lookupMutation.isPending && (
-                <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-              )}
-            </div>
 
-            {/* Form Card */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Name Fields */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      First Name <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                      <input
-                        type="text"
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleChange}
-                        placeholder="First name"
-                        className={`w-full pl-9 pr-3 py-2.5 bg-gray-50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white text-sm text-gray-900 placeholder-gray-400 ${
-                          errors.firstName ? 'border-red-300' : 'border-gray-200'
-                        }`}
-                      />
-                    </div>
-                    {errors.firstName && (
-                      <p className="mt-1 text-xs text-red-500">{errors.firstName}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Last Name <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                      <input
-                        type="text"
-                        name="lastName"
-                        value={formData.lastName}
-                        onChange={handleChange}
-                        placeholder="Last name"
-                        className={`w-full pl-9 pr-3 py-2.5 bg-gray-50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white text-sm text-gray-900 placeholder-gray-400 ${
-                          errors.lastName ? 'border-red-300' : 'border-gray-200'
-                        }`}
-                      />
-                    </div>
-                    {errors.lastName && (
-                      <p className="mt-1 text-xs text-red-500">{errors.lastName}</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Member Info Display (Quick Check-in Mode) */}
-                {mode === 'quick_checkin' && lookupResult?.user && (
-                  <div className="bg-green-50 border border-green-200 rounded-xl p-3">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                        {lookupResult.user.firstName[0]}
-                        {lookupResult.user.lastName[0]}
+              {/* Form Card */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 md:p-5">
+                <form onSubmit={handleSubmit} className="space-y-3 md:space-y-4">
+                  {/* Name Fields */}
+                  <div className="grid grid-cols-2 gap-2 md:gap-3">
+                    <div>
+                      <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+                        First Name <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <UserIcon className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400" />
+                        <input
+                          type="text"
+                          name="firstName"
+                          value={formData.firstName}
+                          onChange={handleChange}
+                          placeholder="First name"
+                          className={`w-full pl-8 md:pl-9 pr-2 md:pr-3 py-2 md:py-2.5 bg-gray-50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white text-xs md:text-sm text-gray-900 placeholder-gray-400 ${
+                            errors.firstName ? 'border-red-300' : 'border-gray-200'
+                          }`}
+                        />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-gray-900 text-sm">
-                          {lookupResult.user.firstName} {lookupResult.user.lastName}
-                        </p>
-                        <p className="text-xs text-gray-600 truncate">{lookupResult.user.email}</p>
+                      {errors.firstName && (
+                        <p className="mt-1 text-[10px] md:text-xs text-red-500">{errors.firstName}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+                        Last Name <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <UserIcon className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400" />
+                        <input
+                          type="text"
+                          name="lastName"
+                          value={formData.lastName}
+                          onChange={handleChange}
+                          placeholder="Last name"
+                          className={`w-full pl-8 md:pl-9 pr-2 md:pr-3 py-2 md:py-2.5 bg-gray-50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white text-xs md:text-sm text-gray-900 placeholder-gray-400 ${
+                            errors.lastName ? 'border-red-300' : 'border-gray-200'
+                          }`}
+                        />
+                      </div>
+                      {errors.lastName && (
+                        <p className="mt-1 text-[10px] md:text-xs text-red-500">{errors.lastName}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Member Info Display (Quick Check-in Mode) */}
+                  {mode === 'quick_checkin' && lookupResult?.user && (
+                    <div className="bg-green-50 border border-green-200 rounded-xl p-2.5 md:p-3">
+                      <div className="flex items-center space-x-2 md:space-x-3">
+                        <div className="w-8 h-8 md:w-10 md:h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-xs md:text-sm">
+                          {lookupResult.user.firstName[0]}
+                          {lookupResult.user.lastName[0]}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-gray-900 text-xs md:text-sm">
+                            {lookupResult.user.firstName} {lookupResult.user.lastName}
+                          </p>
+                          <p className="text-[10px] md:text-xs text-gray-600 truncate">{lookupResult.user.email}</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Additional Fields (New Member Mode) */}
-                {mode === 'new_member' && (
-                  <>
-                    <div className="grid grid-cols-2 gap-3">
+                  {/* Additional Fields (New Member Mode) */}
+                  {mode === 'new_member' && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                           Email <span className="text-red-500">*</span>
                         </label>
                         <div className="relative">
-                          <EnvelopeIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <EnvelopeIcon className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400" />
                           <input
                             type="email"
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
                             placeholder="email@example.com"
-                            className={`w-full pl-9 pr-3 py-2.5 bg-gray-50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white text-sm text-gray-900 placeholder-gray-400 ${
+                            className={`w-full pl-8 md:pl-9 pr-2 md:pr-3 py-2 md:py-2.5 bg-gray-50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white text-xs md:text-sm text-gray-900 placeholder-gray-400 ${
                               errors.email ? 'border-red-300' : 'border-gray-200'
                             }`}
                           />
                         </div>
                         {errors.email && (
-                          <p className="mt-1 text-xs text-red-500">{errors.email}</p>
+                          <p className="mt-1 text-[10px] md:text-xs text-red-500">{errors.email}</p>
                         )}
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Phone <span className="text-gray-400 text-xs">(optional)</span>
+                        <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+                          Phone <span className="text-gray-400 text-[10px] md:text-xs">(optional)</span>
                         </label>
                         <div className="relative">
-                          <PhoneIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <PhoneIcon className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400" />
                           <input
                             type="tel"
                             name="phone"
                             value={formData.phone}
                             onChange={handleChange}
                             placeholder="Phone number"
-                            className="w-full pl-9 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white text-sm text-gray-900 placeholder-gray-400"
+                            className="w-full pl-8 md:pl-9 pr-2 md:pr-3 py-2 md:py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white text-xs md:text-sm text-gray-900 placeholder-gray-400"
                           />
                         </div>
                       </div>
                     </div>
-                  </>
-                )}
+                  )}
 
-                {/* Ministry Field - Always visible */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Ministry <span className="text-gray-400 text-xs">(optional)</span>
-                  </label>
-                  <div className="relative">
-                    <UserGroupIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <select
-                      name="ministryId"
-                      value={formData.ministryId}
-                      onChange={handleChange}
-                      className="w-full pl-9 pr-8 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white appearance-none text-sm text-gray-900"
-                    >
-                      <option value="">Select a ministry</option>
-                      {ministriesList.map((ministry: any) => (
-                        <option key={ministry._id || ministry.id} value={ministry._id || ministry.id}>
-                          {ministry.name}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                      <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
+                  {/* Ministry Field - Always visible */}
+                  <div>
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+                      Ministry <span className="text-gray-400 text-[10px] md:text-xs">(optional)</span>
+                    </label>
+                    <div className="relative">
+                      <UserGroupIcon className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400" />
+                      <select
+                        name="ministryId"
+                        value={formData.ministryId}
+                        onChange={handleChange}
+                        className="w-full pl-8 md:pl-9 pr-6 md:pr-8 py-2 md:py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white appearance-none text-xs md:text-sm text-gray-900"
+                      >
+                        <option value="">Select a ministry</option>
+                        {ministriesList.map((ministry: any) => (
+                          <option key={ministry._id || ministry.id} value={ministry._id || ministry.id}>
+                            {ministry.name}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="absolute right-2.5 md:right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                        <svg className="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Action Buttons */}
-                <div className="flex space-x-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={resetForm}
-                    className="flex-1 py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors text-sm"
-                  >
-                    Clear
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={
-                      checkInMutation.isPending ||
-                      mode === 'search' ||
-                      (lookupResult?.alreadyCheckedInToday ?? false)
-                    }
-                    className={`flex-1 py-2.5 px-4 font-medium rounded-xl transition-all flex items-center justify-center space-x-2 text-sm ${
-                      mode === 'quick_checkin'
-                        ? 'bg-green-500 hover:bg-green-600 text-white'
-                        : mode === 'new_member'
-                        ? 'bg-blue-500 hover:bg-blue-600 text-white'
-                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    }`}
-                  >
-                    {checkInMutation.isPending ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        <span>Processing...</span>
-                      </>
-                    ) : mode === 'quick_checkin' ? (
-                      <>
-                        <CheckCircleSolid className="w-4 h-4" />
-                        <span>Check In</span>
-                      </>
-                    ) : mode === 'new_member' ? (
-                      <>
-                        <UserPlusIcon className="w-4 h-4" />
-                        <span>Register & Check In</span>
-                      </>
-                    ) : (
-                      <span>Enter Name to Search</span>
-                    )}
-                  </button>
-                </div>
-              </form>
+                  {/* Action Buttons */}
+                  <div className="flex space-x-2 md:space-x-3 pt-1 md:pt-2">
+                    <button
+                      type="button"
+                      onClick={resetForm}
+                      className="flex-1 py-2 md:py-2.5 px-3 md:px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors text-xs md:text-sm"
+                    >
+                      Clear
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={
+                        checkInMutation.isPending ||
+                        mode === 'search' ||
+                        (lookupResult?.alreadyCheckedInToday ?? false)
+                      }
+                      className={`flex-1 py-2 md:py-2.5 px-3 md:px-4 font-medium rounded-xl transition-all flex items-center justify-center space-x-1.5 md:space-x-2 text-xs md:text-sm ${
+                        mode === 'quick_checkin'
+                          ? 'bg-green-500 hover:bg-green-600 text-white'
+                          : mode === 'new_member'
+                          ? 'bg-blue-500 hover:bg-blue-600 text-white'
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      }`}
+                    >
+                      {checkInMutation.isPending ? (
+                        <>
+                          <div className="w-3 h-3 md:w-4 md:h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          <span>Processing...</span>
+                        </>
+                      ) : mode === 'quick_checkin' ? (
+                        <>
+                          <CheckCircleSolid className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                          <span>Check In</span>
+                        </>
+                      ) : mode === 'new_member' ? (
+                        <>
+                          <UserPlusIcon className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                          <span className="hidden sm:inline">Register & Check In</span>
+                          <span className="sm:hidden">Register</span>
+                        </>
+                      ) : (
+                        <span className="hidden sm:inline">Enter Name to Search</span>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
-          </div>
           </div>
         </div>
 
-        {/* Right Panel - Today's Check-ins with Pagination */}
-        <div className="w-80 bg-white border-l border-gray-200 flex flex-col">
-          {/* Header */}
+        {/* Right Panel - Today's Check-ins (Desktop) */}
+        <div className="hidden lg:flex w-80 bg-white border-l border-gray-200 flex-col">
           <div className="p-4 border-b border-gray-200 shrink-0">
             <div className="flex items-center justify-between">
-              <h2 className="font-semibold text-gray-900">Today's Check-ins</h2>
-              <span className="px-2.5 py-1 bg-blue-100 text-blue-700 text-sm font-medium rounded-full">
+              <h2 className="font-semibold text-gray-900 text-sm">Today's Check-ins</h2>
+              <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
                 {totalCheckins}
               </span>
             </div>
           </div>
 
-          {/* Checkins List */}
-          <div className="flex-1 p-4 flex flex-col min-h-0">
+          <div className="flex-1 p-4 flex flex-col min-h-0 overflow-y-auto">
             {totalCheckins === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center">
-                <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mb-3">
-                  <UserGroupIcon className="w-7 h-7 text-gray-400" />
+                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                  <UserGroupIcon className="w-6 h-6 text-gray-400" />
                 </div>
                 <p className="text-gray-500 text-sm">No check-ins yet today</p>
                 <p className="text-xs text-gray-400 mt-1">Check in your first member</p>
@@ -519,21 +530,21 @@ export default function PeopleCheckInPage() {
                   return (
                     <div
                       key={record._id}
-                      className="p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
+                      className="p-2.5 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
                     >
-                      <div className="flex items-center space-x-3">
-                        <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-medium text-xs">
+                      <div className="flex items-center space-x-2.5">
+                        <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-medium text-xs">
                           {user ? `${user.firstName[0]}${user.lastName[0]}` : '?'}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-gray-900 text-sm truncate">
+                          <p className="font-medium text-gray-900 text-xs truncate">
                             {user ? `${user.firstName} ${user.lastName}` : 'Unknown'}
                           </p>
-                          <div className="flex items-center space-x-2 text-xs text-gray-500">
+                          <div className="flex items-center space-x-1.5 text-[10px] text-gray-500">
                             <ClockIcon className="w-3 h-3" />
                             <span>{formatTime(record.checkInTime)}</span>
                             {record.isFirstTimeVisitor && (
-                              <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded-full text-[10px]">
+                              <span className="px-1 py-0.5 bg-purple-100 text-purple-700 rounded-full">
                                 New
                               </span>
                             )}
@@ -547,58 +558,122 @@ export default function PeopleCheckInPage() {
             )}
           </div>
 
-          {/* Pagination */}
           {totalCheckinPages > 1 && (
-            <div className="p-4 border-t border-gray-200 shrink-0">
+            <div className="p-3 border-t border-gray-200 shrink-0">
               <div className="flex items-center justify-between">
-                <p className="text-xs text-gray-500">
-                  Page {checkinPage} of {totalCheckinPages}
+                <p className="text-[10px] text-gray-500">
+                  {checkinPage}/{totalCheckinPages}
                 </p>
                 <div className="flex items-center space-x-1">
                   <button
                     onClick={() => setCheckinPage((p) => Math.max(1, p - 1))}
                     disabled={checkinPage === 1}
-                    className="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="p-1 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    <ChevronLeftIcon className="w-4 h-4 text-gray-700" />
+                    <ChevronLeftIcon className="w-3.5 h-3.5 text-gray-700" />
                   </button>
-                  {Array.from({ length: Math.min(3, totalCheckinPages) }, (_, i) => {
-                    let pageNum;
-                    if (totalCheckinPages <= 3) {
-                      pageNum = i + 1;
-                    } else if (checkinPage === 1) {
-                      pageNum = i + 1;
-                    } else if (checkinPage === totalCheckinPages) {
-                      pageNum = totalCheckinPages - 2 + i;
-                    } else {
-                      pageNum = checkinPage - 1 + i;
-                    }
-                    return (
-                      <button
-                        key={pageNum}
-                        onClick={() => setCheckinPage(pageNum)}
-                        className={`w-7 h-7 rounded-lg text-xs font-medium transition-colors ${
-                          checkinPage === pageNum
-                            ? 'bg-blue-500 text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  })}
                   <button
                     onClick={() => setCheckinPage((p) => Math.min(totalCheckinPages, p + 1))}
                     disabled={checkinPage === totalCheckinPages}
-                    className="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="p-1 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    <ChevronRightIcon className="w-4 h-4 text-gray-700" />
+                    <ChevronRightIcon className="w-3.5 h-3.5 text-gray-700" />
                   </button>
                 </div>
               </div>
             </div>
           )}
         </div>
+
+        {/* Mobile Slide-in Panel for Today's Check-ins */}
+        {showTodayPanel && (
+          <div className="lg:hidden fixed inset-0 z-50">
+            <div className="absolute inset-0 bg-black/50" onClick={() => setShowTodayPanel(false)} />
+            <div className="absolute right-0 top-0 bottom-0 w-80 max-w-[85vw] bg-white flex flex-col">
+              <div className="p-4 border-b border-gray-200 shrink-0 flex items-center justify-between">
+                <div>
+                  <h2 className="font-semibold text-gray-900 text-sm">Today's Check-ins</h2>
+                  <p className="text-xs text-gray-500">{totalCheckins} total</p>
+                </div>
+                <button
+                  onClick={() => setShowTodayPanel(false)}
+                  className="p-2 -mr-2 rounded-xl hover:bg-gray-100"
+                >
+                  <XMarkIcon className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+
+              <div className="flex-1 p-4 overflow-y-auto">
+                {totalCheckins === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full">
+                    <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                      <UserGroupIcon className="w-6 h-6 text-gray-400" />
+                    </div>
+                    <p className="text-gray-500 text-sm">No check-ins yet today</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {paginatedCheckins.map((record) => {
+                      const user = typeof record.userId === 'object' ? record.userId : null;
+                      return (
+                        <div
+                          key={record._id}
+                          className="p-2.5 bg-gray-50 rounded-xl"
+                        >
+                          <div className="flex items-center space-x-2.5">
+                            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-medium text-xs">
+                              {user ? `${user.firstName[0]}${user.lastName[0]}` : '?'}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-gray-900 text-xs truncate">
+                                {user ? `${user.firstName} ${user.lastName}` : 'Unknown'}
+                              </p>
+                              <div className="flex items-center space-x-1.5 text-[10px] text-gray-500">
+                                <ClockIcon className="w-3 h-3" />
+                                <span>{formatTime(record.checkInTime)}</span>
+                                {record.isFirstTimeVisitor && (
+                                  <span className="px-1 py-0.5 bg-purple-100 text-purple-700 rounded-full">
+                                    New
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {totalCheckinPages > 1 && (
+                <div className="p-3 border-t border-gray-200 shrink-0">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-gray-500">
+                      Page {checkinPage} of {totalCheckinPages}
+                    </p>
+                    <div className="flex items-center space-x-1">
+                      <button
+                        onClick={() => setCheckinPage((p) => Math.max(1, p - 1))}
+                        disabled={checkinPage === 1}
+                        className="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-50 transition-colors"
+                      >
+                        <ChevronLeftIcon className="w-4 h-4 text-gray-700" />
+                      </button>
+                      <button
+                        onClick={() => setCheckinPage((p) => Math.min(totalCheckinPages, p + 1))}
+                        disabled={checkinPage === totalCheckinPages}
+                        className="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-50 transition-colors"
+                      >
+                        <ChevronRightIcon className="w-4 h-4 text-gray-700" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

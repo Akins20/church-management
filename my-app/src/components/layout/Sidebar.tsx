@@ -18,6 +18,7 @@ import {
   Cog6ToothIcon,
   ArrowRightOnRectangleIcon,
   HomeIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
 
 interface SubItem {
@@ -94,9 +95,10 @@ const navigationItems: NavItem[] = [
 interface SidebarProps {
   isCollapsed?: boolean;
   onToggle?: () => void;
+  onClose?: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed: externalCollapsed, onToggle }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed: externalCollapsed, onToggle, onClose }) => {
   const pathname = usePathname();
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -156,7 +158,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed: externalCollapsed
       {/* Header */}
       <div className="p-4 flex items-center justify-between border-b border-gray-800">
         {!collapsed && (
-          <Link href="/dashboard" className="flex items-center space-x-3">
+          <Link href="/dashboard" className="flex items-center space-x-3" onClick={onClose}>
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
               <span className="text-white font-bold text-lg">C</span>
             </div>
@@ -166,18 +168,30 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed: externalCollapsed
             </div>
           </Link>
         )}
-        <button
-          onClick={handleToggle}
-          className={`p-2 rounded-xl bg-gray-800/50 hover:bg-gray-700 transition-colors ${
-            collapsed ? 'mx-auto' : ''
-          }`}
-        >
-          {collapsed ? (
-            <Bars3Icon className="w-5 h-5 text-gray-400" />
-          ) : (
-            <ChevronLeftIcon className="w-5 h-5 text-gray-400" />
+        <div className="flex items-center space-x-2">
+          {/* Close button for mobile */}
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="p-2 rounded-xl bg-gray-800/50 hover:bg-gray-700 transition-colors lg:hidden"
+            >
+              <XMarkIcon className="w-5 h-5 text-gray-400" />
+            </button>
           )}
-        </button>
+          {/* Collapse/Expand button for desktop */}
+          <button
+            onClick={handleToggle}
+            className={`p-2 rounded-xl bg-gray-800/50 hover:bg-gray-700 transition-colors hidden lg:block ${
+              collapsed ? 'mx-auto' : ''
+            }`}
+          >
+            {collapsed ? (
+              <Bars3Icon className="w-5 h-5 text-gray-400" />
+            ) : (
+              <ChevronLeftIcon className="w-5 h-5 text-gray-400" />
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Navigation */}
@@ -228,6 +242,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed: externalCollapsed
                             <Link
                               key={child.href}
                               href={child.href}
+                              onClick={onClose}
                               className={`block px-4 py-2.5 rounded-lg transition-all duration-200 ${
                                 childActive
                                   ? 'bg-blue-500/20 text-blue-400 font-medium'
@@ -244,6 +259,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed: externalCollapsed
                 ) : (
                   <Link
                     href={item.href}
+                    onClick={onClose}
                     className={`flex items-center ${
                       collapsed ? 'justify-center px-3' : 'px-4'
                     } py-3 rounded-xl transition-all duration-200 ${
