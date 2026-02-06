@@ -17,7 +17,7 @@ import {
   XCircleIcon,
 } from '@heroicons/react/24/outline';
 
-const ITEMS_PER_PAGE = 8;
+const ITEMS_PER_PAGE = 12;
 
 export default function NotepadHistoryPage() {
   const queryClient = useQueryClient();

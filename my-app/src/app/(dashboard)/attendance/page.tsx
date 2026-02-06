@@ -20,7 +20,7 @@ export default function AttendanceOverview() {
 
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['attendanceStats'],
-    queryFn: attendanceService.getAttendanceStats,
+    queryFn: () => attendanceService.getAttendanceAnalytics(),
   });
 
   const { data: analytics, isLoading: analyticsLoading } = useQuery({
@@ -45,31 +45,32 @@ export default function AttendanceOverview() {
     { week: 'Week 6', attendance: 148, visitors: 10 },
   ];
 
+  const statsData = stats as any;
   const summaryStats = [
     {
       name: 'Total Attendance',
-      value: stats?.totalAttendance || 0,
+      value: statsData?.summary?.totalAttendance || statsData?.totalAttendance || 0,
       icon: UserGroupIcon,
       color: 'bg-blue-500',
       change: '+5.2%',
     },
     {
       name: 'Average Attendance',
-      value: stats?.averageAttendance || 0,
+      value: statsData?.summary?.avgAttendancePerDay || statsData?.averageAttendance || 0,
       icon: ChartBarIcon,
       color: 'bg-green-500',
       change: '+2.8%',
     },
     {
       name: 'Attendance Rate',
-      value: `${stats?.attendanceRate || 0}%`,
+      value: `${statsData?.summary?.attendanceRate || statsData?.attendanceRate || 0}%`,
       icon: ArrowTrendingUpIcon,
       color: 'bg-purple-500',
       change: '+1.4%',
     },
     {
       name: 'First-time Visitors',
-      value: stats?.firstTimeVisitors || 0,
+      value: statsData?.summary?.firstTimeVisitors || statsData?.firstTimeVisitors || 0,
       icon: CalendarDaysIcon,
       color: 'bg-orange-500',
       change: '+12',
@@ -239,7 +240,7 @@ export default function AttendanceOverview() {
           <Card hoverable className="text-center">
             <ClipboardDocumentCheckIcon className="h-12 w-12 text-blue-600 mx-auto mb-3" />
             <h3 className="font-semibold text-gray-900">Check-in System</h3>
-            <p className="text-sm text-gray-500 mt-1">Mark attendance for today's service</p>
+            <p className="text-sm text-gray-500 mt-1">Mark attendance for today&apos;s service</p>
           </Card>
         </Link>
         <Link href="/attendance/reports">

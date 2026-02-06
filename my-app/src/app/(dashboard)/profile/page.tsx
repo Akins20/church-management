@@ -277,7 +277,7 @@ export default function ProfilePage() {
           </div>
         ) : (
           <p className="text-gray-500 text-center py-4">
-            You haven't joined any ministries yet.{' '}
+            You haven&apos;t joined any ministries yet.{' '}
             <a href="/ministries" className="text-blue-600 hover:underline">
               Explore ministries
             </a>

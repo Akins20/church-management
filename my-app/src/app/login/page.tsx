@@ -23,8 +23,8 @@ export default function LoginPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    email: 'admin@rccgmtzion.ca',
+    password: 'adminCoven1$',
   });
   const [localError, setLocalError] = useState('');
   const [isLoading, setIsLoading] = useState(false);

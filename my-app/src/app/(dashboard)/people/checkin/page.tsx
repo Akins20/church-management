@@ -291,7 +291,7 @@ export default function PeopleCheckInPage() {
                   {mode === 'search' && (
                     <>
                       <MagnifyingGlassIcon className="w-3 h-3 md:w-4 md:h-4 inline mr-1" />
-                      Searching...
+                      Ready
                     </>
                   )}
                   {mode === 'quick_checkin' && (
@@ -493,7 +493,7 @@ export default function PeopleCheckInPage() {
                           <span className="sm:hidden">Register</span>
                         </>
                       ) : (
-                        <span className="hidden sm:inline">Enter Name to Search</span>
+                        <span>Check In</span>
                       )}
                     </button>
                   </div>
@@ -507,7 +507,7 @@ export default function PeopleCheckInPage() {
         <div className="hidden lg:flex w-80 bg-white border-l border-gray-200 flex-col">
           <div className="p-4 border-b border-gray-200 shrink-0">
             <div className="flex items-center justify-between">
-              <h2 className="font-semibold text-gray-900 text-sm">Today's Check-ins</h2>
+              <h2 className="font-semibold text-gray-900 text-sm">Today&apos;s Check-ins</h2>
               <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
                 {totalCheckins}
               </span>
@@ -592,7 +592,7 @@ export default function PeopleCheckInPage() {
             <div className="absolute right-0 top-0 bottom-0 w-80 max-w-[85vw] bg-white flex flex-col">
               <div className="p-4 border-b border-gray-200 shrink-0 flex items-center justify-between">
                 <div>
-                  <h2 className="font-semibold text-gray-900 text-sm">Today's Check-ins</h2>
+                  <h2 className="font-semibold text-gray-900 text-sm">Today&apos;s Check-ins</h2>
                   <p className="text-xs text-gray-500">{totalCheckins} total</p>
                 </div>
                 <button

@@ -72,7 +72,7 @@ export default function CheckInPage() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Attendance Check-In</h1>
-          <p className="text-gray-600">Mark attendance for today's service</p>
+          <p className="text-gray-600">Mark attendance for today&apos;s service</p>
         </div>
         <div className="flex items-center space-x-3">
           <Button variant="outline">
@@ -261,7 +261,7 @@ export default function CheckInPage() {
                 Mark All Present
               </Button>
               <Button variant="outline" fullWidth>
-                Export Today's List
+                Export Today&apos;s List
               </Button>
             </div>
           </Card>

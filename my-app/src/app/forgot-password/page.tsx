@@ -61,11 +61,11 @@ export default function ForgotPasswordPage() {
               </div>
               <h1 className="text-2xl font-bold text-gray-900 mb-3">Check your email</h1>
               <p className="text-gray-600 mb-6">
-                We've sent a password reset link to <strong>{email}</strong>.
+                We&apos;ve sent a password reset link to <strong>{email}</strong>.
                 Please check your inbox and follow the instructions.
               </p>
               <p className="text-sm text-gray-500 mb-6">
-                Didn't receive the email? Check your spam folder or
+                Didn&apos;t receive the email? Check your spam folder or
               </p>
               <button
                 onClick={() => {
@@ -85,7 +85,7 @@ export default function ForgotPasswordPage() {
                   Forgot your password?
                 </h1>
                 <p className="text-gray-600">
-                  No worries! Enter your email address and we'll send you a link to reset your password.
+                  No worries! Enter your email address and we&apos;ll send you a link to reset your password.
                 </p>
               </div>
 
@@ -172,7 +172,7 @@ export default function ForgotPasswordPage() {
           </div>
           <h2 className="text-3xl font-bold mb-4 text-center">Password Recovery</h2>
           <p className="text-white/80 text-center max-w-sm">
-            We'll help you get back into your account. Just enter your email and follow the instructions.
+            We&apos;ll help you get back into your account. Just enter your email and follow the instructions.
           </p>
         </div>
       </div>

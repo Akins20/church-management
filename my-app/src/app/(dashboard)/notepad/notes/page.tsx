@@ -7,6 +7,7 @@ import {
   DocumentTextIcon,
   PlusIcon,
   ClockIcon,
+  PencilSquareIcon,
   CheckCircleIcon,
   TrashIcon,
   XCircleIcon,
@@ -33,6 +34,8 @@ export default function NotepadNotesPage() {
   } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [showSignature, setShowSignature] = useState(false);
+  const [signature, setSignature] = useState('');
 
   // Fetch notes with pagination
   const { data, isLoading } = useQuery({
@@ -130,10 +133,13 @@ export default function NotepadNotesPage() {
       return;
     }
     setIsSaving(true);
+    const contentWithSignature = showSignature && signature.trim()
+      ? `${currentNote.content}\n\n---\n${signature}`
+      : currentNote.content;
     saveNoteMutation.mutate({
       id: currentNote.id || undefined,
       title: currentNote.title,
-      content: currentNote.content,
+      content: contentWithSignature,
     });
     setNotification({ type: 'success', message: 'Note saved successfully' });
     setTimeout(() => setNotification(null), 3000);
@@ -193,13 +199,9 @@ export default function NotepadNotesPage() {
               <p className="text-gray-500 text-xs md:text-sm mt-0.5 hidden sm:block">Create and manage your notes</p>
             </div>
           </div>
-          <button
-            onClick={handleNewNote}
-            className="flex items-center px-3 md:px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-xl transition-colors text-sm"
-          >
-            <PlusIcon className="w-4 h-4 md:mr-2" />
-            <span className="hidden md:inline">New Note</span>
-          </button>
+          <div className="flex items-center text-xs text-gray-500">
+            {total} notes
+          </div>
         </div>
       </div>
 
@@ -210,7 +212,7 @@ export default function NotepadNotesPage() {
           <div className="bg-white rounded-2xl border border-gray-200 flex-1 flex flex-col">
             <div className="p-4 border-b border-gray-200 shrink-0">
               <div className="flex items-center justify-between">
-                <h2 className="font-semibold text-gray-900">Your Notes</h2>
+                <h2 className="font-semibold text-gray-900">Recent Notes</h2>
                 <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
                   {total}
                 </span>
@@ -228,7 +230,7 @@ export default function NotepadNotesPage() {
                     <DocumentTextIcon className="w-6 h-6 text-gray-400" />
                   </div>
                   <p className="text-gray-500 text-sm">No notes yet</p>
-                  <p className="text-gray-400 text-xs mt-1">Click "New Note" to create one</p>
+                  <p className="text-gray-400 text-xs mt-1">Click &quot;Create New Note&quot; to get started</p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -309,13 +311,33 @@ export default function NotepadNotesPage() {
                 </div>
 
                 {/* Editor Content */}
-                <div className="flex-1 p-4 min-h-0">
+                <div className="flex-1 p-4 min-h-0 flex flex-col">
                   <textarea
                     value={currentNote.content}
                     onChange={(e) => setCurrentNote((prev) => ({ ...prev, content: e.target.value }))}
                     placeholder="Start writing your note..."
-                    className="w-full h-full p-0 border-0 focus:outline-none text-gray-900 placeholder-gray-400 resize-none text-sm"
+                    className="w-full flex-1 p-0 border-0 focus:outline-none text-gray-900 placeholder-gray-400 resize-none text-sm"
                   />
+                  {/* Signature Section */}
+                  <div className="border-t border-gray-100 pt-3 mt-3 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setShowSignature(!showSignature)}
+                      className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center"
+                    >
+                      <PencilSquareIcon className="w-3.5 h-3.5 mr-1" />
+                      {showSignature ? 'Hide Signature' : 'Add Signature'}
+                    </button>
+                    {showSignature && (
+                      <input
+                        type="text"
+                        value={signature}
+                        onChange={(e) => setSignature(e.target.value)}
+                        placeholder="Enter your signature..."
+                        className="w-full mt-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white text-sm text-gray-900 placeholder-gray-400"
+                      />
+                    )}
+                  </div>
                 </div>
 
                 {/* Editor Footer */}

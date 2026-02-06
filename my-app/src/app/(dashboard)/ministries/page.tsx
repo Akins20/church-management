@@ -34,6 +34,7 @@ export default function MinistryDirectory() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [memberSearch, setMemberSearch] = useState('');
+  const [memberFilter, setMemberFilter] = useState('');
   const [selectedMember, setSelectedMember] = useState<any>(null);
   const [formData, setFormData] = useState({ name: '', description: '' });
   const [formErrors, setFormErrors] = useState<any>({});
@@ -186,7 +187,14 @@ export default function MinistryDirectory() {
     setPage(1);
   };
 
-  const membersList = getMembersList();
+  const allMembersList = getMembersList();
+  const membersList = allMembersList.filter((member: any) => {
+    if (!memberFilter.trim()) return true;
+    const searchLower = memberFilter.toLowerCase();
+    return (member.firstName || '').toLowerCase().includes(searchLower) ||
+      (member.lastName || '').toLowerCase().includes(searchLower) ||
+      (member.email || '').toLowerCase().includes(searchLower);
+  });
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
@@ -261,7 +269,7 @@ export default function MinistryDirectory() {
                     return (
                       <button
                         key={ministryId}
-                        onClick={() => setSelectedMinistry(ministry)}
+                        onClick={() => { setSelectedMinistry(ministry); setMemberFilter(''); }}
                         className={`w-full p-3 rounded-xl text-left transition-all ${
                           isSelected
                             ? 'bg-blue-50 border-2 border-blue-500'
@@ -363,15 +371,17 @@ export default function MinistryDirectory() {
                 <div className="flex-1 p-4 md:p-5 min-h-0 flex flex-col">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
                     <h3 className="text-sm font-semibold text-gray-900">
-                      Members ({membersList.length})
+                      Members ({membersList.length}{memberFilter ? ` of ${allMembersList.length}` : ''})
                     </h3>
                     {/* Member Search Filter - Right Side */}
-                    {membersList.length > 0 && (
+                    {allMembersList.length > 0 && (
                       <div className="relative w-full sm:w-48">
                         <MagnifyingGlassIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
                         <input
                           type="text"
                           placeholder="Filter members..."
+                          value={memberFilter}
+                          onChange={(e) => setMemberFilter(e.target.value)}
                           className="w-full pl-8 pr-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white text-xs text-gray-900 placeholder-gray-400"
                         />
                       </div>
@@ -405,7 +415,7 @@ export default function MinistryDirectory() {
                       <div className="flex flex-col items-center justify-center py-8 text-center">
                         <UserGroupIcon className="w-10 h-10 text-gray-400 mb-2" />
                         <p className="text-gray-500 text-sm">No members yet</p>
-                        <p className="text-gray-400 text-xs">Click "Add Member" to add the first one</p>
+                        <p className="text-gray-400 text-xs">Click &quot;Add Member&quot; to add the first one</p>
                       </div>
                     )}
                   </div>

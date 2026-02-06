@@ -6,7 +6,6 @@ import { emailService, userService, ministryService } from '@/services';
 import {
   PaperAirplaneIcon,
   EnvelopeIcon,
-  UserGroupIcon,
   UserIcon,
   BuildingOffice2Icon,
   PhotoIcon,
@@ -18,21 +17,14 @@ import {
 } from '@heroicons/react/24/outline';
 import { PaperAirplaneIcon as PaperAirplaneSolid } from '@heroicons/react/24/solid';
 
-type RecipientType = 'group' | 'ministry' | 'individual';
-
-const churchGroups = [
-  { value: 'all', label: 'All Members' },
-  { value: 'newcomer', label: 'Newcomers' },
-  { value: 'staff', label: 'Staff Only' },
-];
+type RecipientType = 'ministry' | 'individual';
 
 export default function MessageEmailPage() {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [recipientType, setRecipientType] = useState<RecipientType>('group');
+  const [recipientType, setRecipientType] = useState<RecipientType>('ministry');
   const [formData, setFormData] = useState({
-    recipientGroup: '',
     selectedMinistry: '',
     subject: '',
     body: '',
@@ -66,7 +58,7 @@ export default function MessageEmailPage() {
 
   const { data: recentEmails } = useQuery({
     queryKey: ['recentEmails'],
-    queryFn: () => emailService.getEmails(1, 5),
+    queryFn: () => emailService.getEmails(1, 4),
   });
 
   const sendBroadcastMutation = useMutation({
@@ -75,7 +67,7 @@ export default function MessageEmailPage() {
     },
     onSuccess: () => {
       setNotification({ type: 'success', message: 'Email sent successfully!' });
-      setFormData({ recipientGroup: '', selectedMinistry: '', subject: '', body: '' });
+      setFormData({ selectedMinistry: '', subject: '', body: '' });
       setSelectedMembers([]);
       setAttachedImages([]);
       setImagePreviews([]);
@@ -88,27 +80,6 @@ export default function MessageEmailPage() {
       setTimeout(() => setNotification(null), 5000);
     },
   });
-
-  const getRecipientsForGroup = (group: string): string[] => {
-    if (!users?.data) return [];
-
-    if (group === 'all') {
-      return users.data.map(u => u.email).filter(Boolean);
-    }
-
-    return users.data
-      .filter(u => {
-        if (group === 'staff') {
-          return u.role?.toLowerCase() === 'staff' || u.role?.toLowerCase() === 'admin';
-        }
-        if (group === 'newcomer') {
-          return u.role?.toLowerCase() === 'newcomer';
-        }
-        return false;
-      })
-      .map(u => u.email)
-      .filter(Boolean);
-  };
 
   const getRecipientsForMinistry = (ministryId: string): string[] => {
     const ministry = ministries?.data?.find((m: any) => (m._id || m.id) === ministryId);
@@ -128,9 +99,6 @@ export default function MessageEmailPage() {
   };
 
   const getRecipients = (): string[] => {
-    if (recipientType === 'group' && formData.recipientGroup) {
-      return getRecipientsForGroup(formData.recipientGroup);
-    }
     if (recipientType === 'ministry' && formData.selectedMinistry) {
       return getRecipientsForMinistry(formData.selectedMinistry);
     }
@@ -309,18 +277,6 @@ export default function MessageEmailPage() {
                 <div className="flex flex-wrap gap-2 mb-3">
                   <button
                     type="button"
-                    onClick={() => { setRecipientType('group'); setSelectedMembers([]); }}
-                    className={`flex items-center px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
-                      recipientType === 'group'
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    <UserGroupIcon className="w-4 h-4 mr-1.5" />
-                    Group
-                  </button>
-                  <button
-                    type="button"
                     onClick={() => { setRecipientType('ministry'); setSelectedMembers([]); }}
                     className={`flex items-center px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
                       recipientType === 'ministry'
@@ -344,23 +300,6 @@ export default function MessageEmailPage() {
                     Individual
                   </button>
                 </div>
-
-                {/* Group Selection */}
-                {recipientType === 'group' && (
-                  <select
-                    name="recipientGroup"
-                    value={formData.recipientGroup}
-                    onChange={handleChange}
-                    className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white text-sm text-gray-900"
-                  >
-                    <option value="">Select a group</option>
-                    {churchGroups.map(group => (
-                      <option key={group.value} value={group.value}>
-                        {group.label}
-                      </option>
-                    ))}
-                  </select>
-                )}
 
                 {/* Ministry Selection */}
                 {recipientType === 'ministry' && (
@@ -570,7 +509,7 @@ export default function MessageEmailPage() {
             <div className="flex-1 p-4 overflow-y-auto">
               {recentEmails?.data && recentEmails.data.length > 0 ? (
                 <div className="space-y-2">
-                  {recentEmails.data.slice(0, 5).map((email) => (
+                  {recentEmails.data.slice(0, 4).map((email) => (
                     <div
                       key={email.id}
                       className="p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
