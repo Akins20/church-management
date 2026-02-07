@@ -113,7 +113,7 @@ export default function MemberDashboard() {
   ];
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="min-h-full flex flex-col bg-gray-50">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-4 md:px-6 py-4 md:py-5 shrink-0">
         <div className="flex items-center justify-between">

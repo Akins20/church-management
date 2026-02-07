@@ -37,9 +37,10 @@ export default function EmailHistoryPage() {
     queryFn: () => emailService.getEmails(page, ITEMS_PER_PAGE),
   });
 
-  const emails = data?.data || [];
-  const totalPages = data?.totalPages || 1;
-  const total = data?.total || 0;
+  const rawData = data as any;
+  const emails = Array.isArray(rawData?.data) ? rawData.data : (rawData?.data?.emails || rawData?.emails || []);
+  const totalPages = rawData?.totalPages || rawData?.data?.totalPages || 1;
+  const total = rawData?.total || rawData?.data?.total || 0;
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -70,7 +71,7 @@ export default function EmailHistoryPage() {
   const hasActiveFilters = filters.search || filters.status;
 
   // Filter emails client-side for now
-  const filteredEmails = emails.filter((email) => {
+  const filteredEmails = emails.filter((email: any) => {
     if (filters.status && email.status !== filters.status) return false;
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
@@ -83,7 +84,7 @@ export default function EmailHistoryPage() {
   });
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="min-h-full flex flex-col bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-4 md:px-6 py-3 md:py-4 shrink-0">
         <div className="flex items-center justify-between">
@@ -118,7 +119,7 @@ export default function EmailHistoryPage() {
                     value={filters.search}
                     onChange={(e) => handleFilterChange('search', e.target.value)}
                     placeholder="Search subject or recipient..."
-                    className="w-full pl-8 pr-3 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs md:text-sm"
+                    className="w-full pl-8 pr-3 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs md:text-sm text-gray-900 placeholder-gray-400"
                   />
                 </div>
               </div>
@@ -127,7 +128,7 @@ export default function EmailHistoryPage() {
                 <select
                   value={filters.status}
                   onChange={(e) => handleFilterChange('status', e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none text-xs md:text-sm"
+                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none text-xs md:text-sm text-gray-900"
                 >
                   <option value="">All</option>
                   <option value="SENT">Sent</option>
@@ -188,7 +189,7 @@ export default function EmailHistoryPage() {
             <>
               {/* Mobile Card Layout */}
               <div className="md:hidden space-y-2">
-                {filteredEmails.map((email) => {
+                {filteredEmails.map((email: any) => {
                   const status = statusConfig[email.status as keyof typeof statusConfig];
                   const StatusIcon = status?.icon || CheckCircleIcon;
 
@@ -253,7 +254,7 @@ export default function EmailHistoryPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {filteredEmails.map((email) => {
+                    {filteredEmails.map((email: any) => {
                       const status = statusConfig[email.status as keyof typeof statusConfig];
                       const StatusIcon = status?.icon || CheckCircleIcon;
 

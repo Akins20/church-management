@@ -230,7 +230,7 @@ export default function PeopleCheckInPage() {
   );
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="min-h-full flex flex-col bg-gray-50">
       {/* Notification Banner */}
       {notification && (
         <div

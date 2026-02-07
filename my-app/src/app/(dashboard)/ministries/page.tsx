@@ -73,7 +73,8 @@ export default function MinistryDirectory() {
   const paginatedMinistries = filteredMinistries.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
   // Filter users for add member modal
-  const filteredUsers = (allUsers?.data || []).filter((user: any) => {
+  const allUsersList = Array.isArray(allUsers?.data) ? allUsers.data : ((allUsers?.data as any)?.users || (allUsers as any)?.users || []);
+  const filteredUsers = allUsersList.filter((user: any) => {
     if (!memberSearch.trim()) return true;
     const searchLower = memberSearch.toLowerCase();
     return (user.firstName || '').toLowerCase().includes(searchLower) ||
@@ -197,7 +198,7 @@ export default function MinistryDirectory() {
   });
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="min-h-full flex flex-col bg-gray-50">
       {/* Notification */}
       {notification && (
         <div className={`px-4 py-3 flex items-center justify-between shrink-0 ${notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'}`}>

@@ -81,8 +81,10 @@ export default function MessageEmailPage() {
     },
   });
 
+  const ministriesList = Array.isArray(ministries?.data) ? ministries.data : ((ministries?.data as any)?.ministries || (ministries as any)?.ministries || []);
+
   const getRecipientsForMinistry = (ministryId: string): string[] => {
-    const ministry = ministries?.data?.find((m: any) => (m._id || m.id) === ministryId);
+    const ministry = ministriesList.find((m: any) => (m._id || m.id) === ministryId);
     if (!ministry?.members) return [];
 
     // If members are populated with user objects
@@ -92,7 +94,7 @@ export default function MessageEmailPage() {
 
     // If members are just IDs, we need to find them in users
     const memberIds = ministry.members;
-    return (users?.data || [])
+    return usersList
       .filter((u: any) => memberIds.includes(u._id || u.id))
       .map((u: any) => u.email)
       .filter(Boolean);
@@ -191,7 +193,8 @@ export default function MessageEmailPage() {
     }
   };
 
-  const filteredUsers = (users?.data || []).filter((user: any) => {
+  const usersList = Array.isArray(users?.data) ? users.data : ((users?.data as any)?.users || (users as any)?.users || []);
+  const filteredUsers = usersList.filter((user: any) => {
     if (!memberSearch.trim()) return true;
     const search = memberSearch.toLowerCase();
     return (
@@ -202,7 +205,6 @@ export default function MessageEmailPage() {
   });
 
   const recipientCount = getRecipients().length;
-  const ministriesList = ministries?.data || [];
 
   const stats = [
     { name: 'Sent', value: emailStats?.totalSent || 0, icon: PaperAirplaneIcon, color: 'bg-blue-500' },
@@ -212,7 +214,7 @@ export default function MessageEmailPage() {
   ];
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="min-h-full flex flex-col bg-gray-50">
       {/* Notification */}
       {notification && (
         <div
