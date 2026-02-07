@@ -49,7 +49,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
           <div className="w-9" /> {/* Spacer for centering */}
         </div>
 
-        <main className="flex-1 overflow-hidden">
+        <main className="flex-1 overflow-y-auto">
           {children}
         </main>
       </div>

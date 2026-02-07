@@ -17,7 +17,7 @@ import {
   XCircleIcon,
 } from '@heroicons/react/24/outline';
 
-const ITEMS_PER_PAGE = 8;
+const ITEMS_PER_PAGE = 12;
 
 export default function NotepadHistoryPage() {
   const queryClient = useQueryClient();
@@ -130,7 +130,7 @@ export default function NotepadHistoryPage() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="min-h-full flex flex-col bg-gray-50">
       {/* Notification */}
       {notification && (
         <div
@@ -153,24 +153,29 @@ export default function NotepadHistoryPage() {
       )}
 
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 shrink-0">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Notes History</h1>
-            <p className="text-gray-500 text-sm mt-0.5">View and manage your past notes</p>
+      <div className="bg-white border-b border-gray-200 px-4 md:px-6 py-4 shrink-0">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900">Notes History</h1>
+              <p className="text-gray-500 text-xs md:text-sm mt-0.5 hidden sm:block">View and manage your past notes</p>
+            </div>
+            <div className="px-2.5 py-1.5 bg-gray-100 rounded-xl text-xs sm:hidden">
+              <span className="font-semibold text-gray-900">{total}</span>
+            </div>
           </div>
           <div className="flex items-center space-x-3">
-            <div className="relative">
+            <div className="relative flex-1 sm:flex-none">
               <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search notes..."
                 value={searchTerm}
                 onChange={(e) => handleSearch(e.target.value)}
-                className="w-64 pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white text-sm text-gray-900 placeholder-gray-400"
+                className="w-full sm:w-64 pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white text-sm text-gray-900 placeholder-gray-400"
               />
             </div>
-            <div className="px-3 py-2 bg-gray-100 rounded-xl text-sm">
+            <div className="px-3 py-2 bg-gray-100 rounded-xl text-sm hidden sm:block">
               <span className="font-semibold text-gray-900">{total}</span>
               <span className="text-gray-500 ml-1">notes</span>
             </div>
@@ -179,7 +184,7 @@ export default function NotepadHistoryPage() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex flex-col min-h-0 p-6">
+      <div className="flex-1 flex flex-col min-h-0 p-4 md:p-6 overflow-y-auto">
         {isLoading ? (
           <div className="flex-1 flex items-center justify-center">
             <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
@@ -195,7 +200,7 @@ export default function NotepadHistoryPage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
             {notes.map((note) => (
               <div
                 key={note._id}
@@ -299,8 +304,8 @@ export default function NotepadHistoryPage() {
 
       {/* View/Edit Modal */}
       {selectedNote && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-6">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] flex flex-col">
+        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 sm:p-6">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] sm:max-h-[80vh] flex flex-col">
             {/* Modal Header */}
             <div className="flex items-center justify-between p-5 border-b border-gray-200 shrink-0">
               <h2 className="text-lg font-semibold text-gray-900">

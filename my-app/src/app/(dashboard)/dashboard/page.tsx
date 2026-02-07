@@ -39,40 +39,36 @@ export default function MemberDashboard() {
   const { data: todayAttendance } = useQuery({
     queryKey: ['attendance', 'today'],
     queryFn: attendanceService.getTodayAttendance,
-    enabled: isStaffOrAdmin,
   });
 
   const { data: recentNotes } = useQuery({
     queryKey: ['recentNotes'],
     queryFn: () => noteService.getNotes({}, 1, 4),
-    enabled: isStaffOrAdmin,
   });
 
+  const userId = (user as any)?._id || (user as any)?.id || '';
   const { data: userAttendance } = useQuery({
-    queryKey: ['userAttendance', user?._id],
-    queryFn: () => attendanceService.getUserAttendance(user?._id || ''),
-    enabled: !!user?._id && !isStaffOrAdmin,
+    queryKey: ['userAttendance', userId],
+    queryFn: () => attendanceService.getUserAttendance(userId),
+    enabled: !!userId && !isStaffOrAdmin,
   });
 
   // Fetch total members count
   const { data: usersData } = useQuery({
     queryKey: ['usersStats'],
     queryFn: () => userService.getUsers({}, 1, 1),
-    enabled: isStaffOrAdmin,
   });
 
   // Fetch ministries count
   const { data: ministriesData } = useQuery({
     queryKey: ['ministriesStats'],
     queryFn: () => ministryService.getMinistries(1, 1),
-    enabled: isStaffOrAdmin,
   });
 
   // Fetch attendance analytics
   const { data: attendanceAnalytics } = useQuery({
     queryKey: ['attendanceAnalytics'],
     queryFn: () => attendanceService.getAttendanceAnalytics(),
-    enabled: isStaffOrAdmin,
   });
 
   const attendanceList = Array.isArray(userAttendance) ? userAttendance : [];
@@ -97,9 +93,9 @@ export default function MemberDashboard() {
 
   const memberStats = [
     { name: 'Attendance Rate', value: `${attendanceRate}%`, icon: ChartBarIcon, color: 'from-blue-500 to-blue-600' },
-    { name: 'Services Attended', value: attendanceList.filter(a => a.status === 'present').length, icon: CheckCircleIcon, color: 'from-green-500 to-green-600' },
-    { name: 'Ministries Joined', value: user?.ministries?.length || 0, icon: UserGroupIcon, color: 'from-purple-500 to-purple-600' },
-    { name: 'Member Since', value: user?.dateJoined ? new Date(user.dateJoined).getFullYear() : 'N/A', icon: ClockIcon, color: 'from-orange-500 to-orange-600' },
+    { name: 'Services Count', value: (attendanceAnalytics?.summary as any)?.totalServices || attendanceAnalytics?.summary?.totalDays || attendanceList.length || 0, icon: CheckCircleIcon, color: 'from-green-500 to-green-600' },
+    { name: 'Ministries', value: totalMinistries, icon: UserGroupIcon, color: 'from-purple-500 to-purple-600' },
+    { name: 'Members', value: totalMembers, icon: ClockIcon, color: 'from-orange-500 to-orange-600' },
   ];
 
   const stats = isStaffOrAdmin ? adminStats : memberStats;
@@ -117,12 +113,12 @@ export default function MemberDashboard() {
   ];
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="min-h-full flex flex-col bg-gray-50">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-4 md:px-6 py-4 md:py-5 shrink-0">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg md:text-2xl font-bold text-white">Welcome, {user?.firstName}!</h1>
+            <h1 className="text-lg md:text-2xl font-bold text-white">Welcome, Admin!</h1>
             <p className="text-blue-100 text-xs md:text-sm mt-0.5 hidden sm:block">
               {isStaffOrAdmin ? 'Manage your church operations from here' : "Here's what's happening at church"}
             </p>
@@ -188,71 +184,69 @@ export default function MemberDashboard() {
               </div>
             </div>
 
-            {/* Middle Column - Current Service */}
+            {/* Middle Column - Recent Note */}
             <div className="lg:col-span-1 flex flex-col">
               <div className="bg-white rounded-xl md:rounded-2xl border border-gray-200 flex-1 flex flex-col">
                 <div className="p-3 md:p-4 border-b border-gray-200 shrink-0">
-                  <h2 className="font-semibold text-gray-900 text-sm md:text-base">Today's Service</h2>
+                  <div className="flex items-center justify-between">
+                    <h2 className="font-semibold text-gray-900 text-sm md:text-base">Recent Note</h2>
+                    <Link
+                      href="/notepad/notes"
+                      className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                    >
+                      View All
+                    </Link>
+                  </div>
                 </div>
                 <div className="p-3 md:p-4 flex-1 flex flex-col">
-                  {currentService ? (
+                  {notesList.length > 0 ? (
                     <div className="flex-1 flex flex-col">
                       <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100 flex-1">
                         <div className="flex items-start justify-between mb-3">
-                          <div className="bg-green-100 px-2.5 py-1 rounded-full">
-                            <span className="text-green-700 text-xs font-medium">Active</span>
+                          <div className="bg-blue-100 px-2.5 py-1 rounded-full">
+                            <span className="text-blue-700 text-xs font-medium">Latest</span>
                           </div>
-                          <CalendarIcon className="w-5 h-5 text-blue-400" />
+                          <DocumentTextIcon className="w-5 h-5 text-blue-400" />
                         </div>
                         <h3 className="font-semibold text-gray-900 text-lg">
-                          {currentService.theme || 'Sunday Service'}
+                          {notesList[0]?.title || 'Untitled'}
                         </h3>
-                        <p className="text-sm text-gray-600 mt-1">
-                          {new Date(currentService.date).toLocaleDateString('en-US', {
-                            weekday: 'long',
-                            month: 'long',
-                            day: 'numeric',
-                          })}
+                        <p className="text-sm text-gray-600 mt-1 line-clamp-3">
+                          {notesList[0]?.content?.substring(0, 120) || 'No content'}
                         </p>
-                        {isStaffOrAdmin && (
-                          <div className="mt-4 flex items-center text-sm text-blue-600">
-                            <UserGroupIcon className="w-4 h-4 mr-1.5" />
-                            <span>{todayCount} checked in today</span>
-                          </div>
-                        )}
+                        <div className="mt-4 flex items-center text-sm text-blue-600">
+                          <ClockIcon className="w-4 h-4 mr-1.5" />
+                          <span>{new Date(notesList[0]?.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                        </div>
                       </div>
-                      {isStaffOrAdmin && (
-                        <Link
-                          href="/people/checkin"
-                          className="mt-3 block w-full text-center py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium transition-colors text-sm"
-                        >
-                          Go to Check-in
-                        </Link>
-                      )}
+                      <Link
+                        href="/notepad/notes"
+                        className="mt-3 block w-full text-center py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium transition-colors text-sm"
+                      >
+                        Open Notes
+                      </Link>
                     </div>
                   ) : (
                     <div className="flex-1 flex flex-col items-center justify-center text-center">
                       <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mb-3">
-                        <ClockIcon className="w-7 h-7 text-gray-400" />
+                        <DocumentTextIcon className="w-7 h-7 text-gray-400" />
                       </div>
-                      <p className="text-gray-500 text-sm">No active service</p>
-                      <p className="text-gray-400 text-xs mt-1">Check back during service hours</p>
+                      <p className="text-gray-500 text-sm">No notes yet</p>
+                      <p className="text-gray-400 text-xs mt-1">Create your first note</p>
                     </div>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Right Column - Recent Activity */}
+            {/* Right Column - Recent Attendance */}
             <div className="lg:col-span-1 flex flex-col">
               <div className="bg-white rounded-xl md:rounded-2xl border border-gray-200 flex-1 flex flex-col">
                 <div className="p-3 md:p-4 border-b border-gray-200 shrink-0">
                   <div className="flex items-center justify-between">
-                    <h2 className="font-semibold text-gray-900 text-sm md:text-base">
-                      {isStaffOrAdmin ? 'Recent Notes' : 'Your Attendance'}
-                    </h2>
+                    <h2 className="font-semibold text-gray-900 text-sm md:text-base">Recent Attendance</h2>
                     <Link
-                      href={isStaffOrAdmin ? '/notepad/notes' : '/people/history'}
+                      href="/people/history"
                       className="text-xs text-blue-600 hover:text-blue-700 font-medium"
                     >
                       View All
@@ -260,77 +254,74 @@ export default function MemberDashboard() {
                   </div>
                 </div>
                 <div className="p-3 md:p-4 flex-1 min-h-0">
-                  {isStaffOrAdmin ? (
-                    notesList.length > 0 ? (
-                      <div className="space-y-2">
-                        {notesList.map((note: any) => (
+                  {(todayAttendance || []).length > 0 ? (
+                    <div className="space-y-2">
+                      {(todayAttendance || []).slice(0, 4).map((record: any, index: number) => {
+                        const attendee = typeof record.userId === 'object' ? record.userId : null;
+                        return (
                           <div
-                            key={note._id}
-                            className="p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
-                          >
-                            <div className="flex items-start space-x-3">
-                              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center shrink-0">
-                                <DocumentTextIcon className="w-4 h-4 text-blue-600" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium text-gray-900 text-sm truncate">
-                                  {note.title || 'Untitled'}
-                                </p>
-                                <p className="text-xs text-gray-500 truncate mt-0.5">
-                                  {note.content?.substring(0, 50) || 'No content'}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="flex-1 flex flex-col items-center justify-center text-center h-full">
-                        <DocumentTextIcon className="w-10 h-10 text-gray-300 mb-2" />
-                        <p className="text-gray-500 text-sm">No notes yet</p>
-                      </div>
-                    )
-                  ) : (
-                    attendanceList.length > 0 ? (
-                      <div className="space-y-2">
-                        {attendanceList.slice(0, 4).map((attendance: any, index: number) => (
-                          <div
-                            key={attendance._id || index}
+                            key={record._id || index}
                             className="flex items-center justify-between p-3 bg-gray-50 rounded-xl"
                           >
                             <div className="flex items-center space-x-3">
-                              <div className={`p-2 rounded-lg ${
-                                attendance.status === 'present' ? 'bg-green-100' : 'bg-red-100'
-                              }`}>
-                                {attendance.status === 'present' ? (
-                                  <CheckCircleIcon className="w-4 h-4 text-green-600" />
-                                ) : (
-                                  <ClockIcon className="w-4 h-4 text-red-600" />
-                                )}
+                              <div className="p-2 rounded-lg bg-green-100">
+                                <CheckCircleIcon className="w-4 h-4 text-green-600" />
                               </div>
                               <div>
-                                <p className="text-sm font-medium text-gray-900">Sunday Service</p>
+                                <p className="text-sm font-medium text-gray-900">
+                                  {attendee ? `${attendee.firstName} ${attendee.lastName}` : 'Member'}
+                                </p>
                                 <p className="text-xs text-gray-500">
-                                  {new Date(attendance.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                  {new Date(record.checkInTime || record.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                                 </p>
                               </div>
                             </div>
-                            <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                              attendance.status === 'present'
-                                ? 'bg-green-100 text-green-700'
-                                : 'bg-red-100 text-red-700'
-                            }`}>
-                              {attendance.status}
+                            <span className="text-xs font-medium px-2 py-1 rounded-full bg-green-100 text-green-700">
+                              Present
                             </span>
                           </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="flex-1 flex flex-col items-center justify-center text-center h-full">
-                        <ClockIcon className="w-10 h-10 text-gray-300 mb-2" />
-                        <p className="text-gray-500 text-sm">No attendance records</p>
-                      </div>
-                    )
+                        );
+                      })}
+                    </div>
+                  ) : attendanceList.length > 0 ? (
+                    <div className="space-y-2">
+                      {attendanceList.slice(0, 4).map((attendance: any, index: number) => (
+                        <div
+                          key={attendance._id || index}
+                          className="flex items-center justify-between p-3 bg-gray-50 rounded-xl"
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div className={`p-2 rounded-lg ${
+                              attendance.status === 'present' ? 'bg-green-100' : 'bg-red-100'
+                            }`}>
+                              {attendance.status === 'present' ? (
+                                <CheckCircleIcon className="w-4 h-4 text-green-600" />
+                              ) : (
+                                <ClockIcon className="w-4 h-4 text-red-600" />
+                              )}
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">Sunday Service</p>
+                              <p className="text-xs text-gray-500">
+                                {new Date(attendance.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                              </p>
+                            </div>
+                          </div>
+                          <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                            attendance.status === 'present'
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-red-100 text-red-700'
+                          }`}>
+                            {attendance.status}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex-1 flex flex-col items-center justify-center text-center h-full">
+                      <ClockIcon className="w-10 h-10 text-gray-300 mb-2" />
+                      <p className="text-gray-500 text-sm">No attendance records</p>
+                    </div>
                   )}
                 </div>
               </div>

@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { attendanceService, serviceService } from '@/services';
-import { Card, Loading } from '@/components/common';
+import { attendanceService } from '@/services';
 import Link from 'next/link';
 import {
   ChartBarIcon,
@@ -11,251 +10,388 @@ import {
   CalendarDaysIcon,
   ArrowTrendingUpIcon,
   ClipboardDocumentCheckIcon,
-  DocumentChartBarIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  CheckCircleIcon,
+  ClockIcon,
+  UserIcon,
 } from '@heroicons/react/24/outline';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+
+const ITEMS_PER_PAGE = 8;
 
 export default function AttendanceOverview() {
-  const [dateRange, setDateRange] = useState('30');
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  });
+  const [page, setPage] = useState(1);
 
-  const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ['attendanceStats'],
-    queryFn: attendanceService.getAttendanceStats,
+  // Fetch attendance for the selected date
+  const dateStr = selectedDate.toISOString().split('T')[0];
+  const nextDay = new Date(selectedDate);
+  nextDay.setDate(nextDay.getDate() + 1);
+
+  const { data: dateAttendance, isLoading: dateLoading } = useQuery({
+    queryKey: ['attendance', 'byDate', dateStr, page],
+    queryFn: () =>
+      attendanceService.getAttendance(
+        {
+          startDate: selectedDate.toISOString(),
+          endDate: nextDay.toISOString(),
+        },
+        page,
+        ITEMS_PER_PAGE
+      ),
   });
 
-  const { data: analytics, isLoading: analyticsLoading } = useQuery({
-    queryKey: ['attendanceAnalytics', dateRange],
+  // Fetch analytics (cached, runs once)
+  const { data: analytics } = useQuery({
+    queryKey: ['attendanceAnalytics'],
     queryFn: () => attendanceService.getAttendanceAnalytics(),
+    staleTime: 5 * 60 * 1000,
   });
 
-  const { data: recentServices, isLoading: servicesLoading } = useQuery({
-    queryKey: ['recentServices'],
-    queryFn: () => serviceService.getServices(1, 10),
-  });
+  const analyticsData = analytics as any;
+  const records = (dateAttendance as any)?.attendance || [];
+  const totalRecords = (dateAttendance as any)?.total || 0;
+  const totalPages = (dateAttendance as any)?.totalPages || 1;
 
-  const isLoading = statsLoading || analyticsLoading || servicesLoading;
-
-  // Mock trend data
-  const weeklyTrend = [
-    { week: 'Week 1', attendance: 120, visitors: 12 },
-    { week: 'Week 2', attendance: 135, visitors: 18 },
-    { week: 'Week 3', attendance: 128, visitors: 8 },
-    { week: 'Week 4', attendance: 145, visitors: 22 },
-    { week: 'Week 5', attendance: 152, visitors: 15 },
-    { week: 'Week 6', attendance: 148, visitors: 10 },
-  ];
-
-  const summaryStats = [
+  const stats = [
     {
-      name: 'Total Attendance',
-      value: stats?.totalAttendance || 0,
+      label: 'Total Attendance',
+      value: analyticsData?.summary?.totalAttendance || 0,
       icon: UserGroupIcon,
-      color: 'bg-blue-500',
-      change: '+5.2%',
+      color: 'from-blue-500 to-blue-600',
     },
     {
-      name: 'Average Attendance',
-      value: stats?.averageAttendance || 0,
+      label: 'Avg Per Service',
+      value: analyticsData?.summary?.avgAttendancePerDay || 0,
       icon: ChartBarIcon,
-      color: 'bg-green-500',
-      change: '+2.8%',
+      color: 'from-green-500 to-green-600',
     },
     {
-      name: 'Attendance Rate',
-      value: `${stats?.attendanceRate || 0}%`,
-      icon: ArrowTrendingUpIcon,
-      color: 'bg-purple-500',
-      change: '+1.4%',
-    },
-    {
-      name: 'First-time Visitors',
-      value: stats?.firstTimeVisitors || 0,
+      label: 'Service Days',
+      value: analyticsData?.summary?.totalDays || 0,
       icon: CalendarDaysIcon,
-      color: 'bg-orange-500',
-      change: '+12',
+      color: 'from-purple-500 to-purple-600',
+    },
+    {
+      label: 'First Timers',
+      value: analyticsData?.summary?.firstTimeVisitors || 0,
+      icon: ArrowTrendingUpIcon,
+      color: 'from-orange-500 to-orange-600',
     },
   ];
 
-  if (isLoading) {
-    return <Loading fullScreen text="Loading attendance data..." />;
-  }
+  const goToPrevDay = () => {
+    const d = new Date(selectedDate);
+    d.setDate(d.getDate() - 1);
+    setSelectedDate(d);
+    setPage(1);
+  };
+
+  const goToNextDay = () => {
+    const d = new Date(selectedDate);
+    d.setDate(d.getDate() + 1);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (d <= today) {
+      setSelectedDate(d);
+      setPage(1);
+    }
+  };
+
+  const goToToday = () => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    setSelectedDate(d);
+    setPage(1);
+  };
+
+  const isToday = (() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return selectedDate.getTime() === today.getTime();
+  })();
+
+  const formatDate = (d: Date) =>
+    d.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    });
+
+  const formatTime = (timeStr: string) => {
+    if (!timeStr) return '--';
+    return new Date(timeStr).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  };
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-full flex flex-col bg-gray-50">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Attendance Overview</h1>
-          <p className="text-gray-600">Track and analyze church attendance</p>
-        </div>
-        <div className="flex items-center space-x-3">
-          <select
-            value={dateRange}
-            onChange={(e) => setDateRange(e.target.value)}
-            className="p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+      <div className="bg-white border-b border-gray-200 px-4 md:px-6 py-4 shrink-0">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold text-gray-900">Attendance</h1>
+            <p className="text-gray-500 text-xs md:text-sm mt-0.5 hidden sm:block">
+              View attendance records by date
+            </p>
+          </div>
+          <Link
+            href="/people/checkin"
+            className="flex items-center justify-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-xl transition-colors text-sm"
           >
-            <option value="7">Last 7 days</option>
-            <option value="30">Last 30 days</option>
-            <option value="90">Last 90 days</option>
-            <option value="365">Last year</option>
-          </select>
-          <Link href="/attendance/checkin">
-            <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-              <ClipboardDocumentCheckIcon className="h-5 w-5 mr-2" />
-              Check-in
-            </button>
+            <ClipboardDocumentCheckIcon className="w-4 h-4 mr-2" />
+            Check-in
           </Link>
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {summaryStats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <Card key={stat.name}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-500">{stat.name}</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-1">{stat.value}</p>
-                  <p className="text-sm text-green-600 mt-1 flex items-center">
-                    <ArrowTrendingUpIcon className="h-4 w-4 mr-1" />
-                    {stat.change} from last period
-                  </p>
+      {/* Stats Row */}
+      <div className="px-4 md:px-6 py-3 shrink-0">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {stats.map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <div
+                key={stat.label}
+                className="bg-white rounded-xl border border-gray-200 p-3 flex items-center space-x-3"
+              >
+                <div
+                  className={`w-10 h-10 bg-gradient-to-br ${stat.color} rounded-xl flex items-center justify-center shrink-0`}
+                >
+                  <Icon className="w-5 h-5 text-white" />
                 </div>
-                <div className={`${stat.color} p-3 rounded-lg`}>
-                  <Icon className="h-8 w-8 text-white" />
+                <div className="min-w-0">
+                  <p className="text-xs text-gray-500 truncate">{stat.label}</p>
+                  <p className="text-lg font-bold text-gray-900">{stat.value}</p>
                 </div>
               </div>
-            </Card>
-          );
-        })}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Attendance Trend */}
-        <Card title="Weekly Attendance Trend">
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={weeklyTrend}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="week" />
-                <YAxis />
-                <Tooltip />
-                <Line
-                  type="monotone"
-                  dataKey="attendance"
-                  stroke="#3B82F6"
-                  strokeWidth={3}
-                  dot={{ fill: '#3B82F6' }}
-                  name="Attendance"
-                />
-                <Line
-                  type="monotone"
-                  dataKey="visitors"
-                  stroke="#10B981"
-                  strokeWidth={2}
-                  dot={{ fill: '#10B981' }}
-                  name="Visitors"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
-
-        {/* Attendance by Service */}
-        <Card title="Attendance by Service">
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={weeklyTrend}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="week" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="attendance" fill="#3B82F6" name="Total Attendance" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
-      </div>
-
-      {/* Recent Services Attendance */}
-      <Card title="Recent Service Attendance">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Date
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Service
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Attendance
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Visitors
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Change
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {recentServices?.data?.slice(0, 5).map((service, index) => (
-                <tr key={service.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-4 text-sm font-medium text-gray-900">
-                    {new Date(service.date).toLocaleDateString('en-US', {
-                      weekday: 'short',
-                      month: 'short',
-                      day: 'numeric',
-                    })}
-                  </td>
-                  <td className="px-4 py-4 text-sm text-gray-600">
-                    {service.theme || 'Sunday Service'}
-                  </td>
-                  <td className="px-4 py-4 text-sm text-gray-900 font-medium">
-                    {service.attendanceCount || Math.floor(Math.random() * 50) + 100}
-                  </td>
-                  <td className="px-4 py-4 text-sm text-gray-600">
-                    {Math.floor(Math.random() * 15) + 5}
-                  </td>
-                  <td className="px-4 py-4">
-                    <span className={`text-sm ${index % 2 === 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {index % 2 === 0 ? '+' : '-'}{Math.floor(Math.random() * 10) + 1}%
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+            );
+          })}
         </div>
-      </Card>
+      </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Link href="/attendance/checkin">
-          <Card hoverable className="text-center">
-            <ClipboardDocumentCheckIcon className="h-12 w-12 text-blue-600 mx-auto mb-3" />
-            <h3 className="font-semibold text-gray-900">Check-in System</h3>
-            <p className="text-sm text-gray-500 mt-1">Mark attendance for today's service</p>
-          </Card>
-        </Link>
-        <Link href="/attendance/reports">
-          <Card hoverable className="text-center">
-            <DocumentChartBarIcon className="h-12 w-12 text-purple-600 mx-auto mb-3" />
-            <h3 className="font-semibold text-gray-900">Generate Reports</h3>
-            <p className="text-sm text-gray-500 mt-1">Create detailed attendance reports</p>
-          </Card>
-        </Link>
-        <Link href="/directory">
-          <Card hoverable className="text-center">
-            <UserGroupIcon className="h-12 w-12 text-green-600 mx-auto mb-3" />
-            <h3 className="font-semibold text-gray-900">View Members</h3>
-            <p className="text-sm text-gray-500 mt-1">Browse member attendance history</p>
-          </Card>
-        </Link>
+      {/* Date Navigator */}
+      <div className="px-4 md:px-6 py-2 shrink-0">
+        <div className="bg-white rounded-xl border border-gray-200 p-3 flex items-center justify-between">
+          <button
+            onClick={goToPrevDay}
+            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <ChevronLeftIcon className="w-5 h-5 text-gray-600" />
+          </button>
+          <div className="flex items-center space-x-3">
+            <div className="text-center">
+              <p className="text-sm md:text-base font-semibold text-gray-900">
+                {formatDate(selectedDate)}
+              </p>
+              <p className="text-xs text-gray-500">
+                {totalRecords} record{totalRecords !== 1 ? 's' : ''}
+                {isToday && (
+                  <span className="ml-2 px-1.5 py-0.5 bg-green-100 text-green-700 rounded-full text-[10px] font-medium">
+                    Today
+                  </span>
+                )}
+              </p>
+            </div>
+            {!isToday && (
+              <button
+                onClick={goToToday}
+                className="px-2.5 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+              >
+                Today
+              </button>
+            )}
+          </div>
+          <button
+            onClick={goToNextDay}
+            disabled={isToday}
+            className="p-2 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            <ChevronRightIcon className="w-5 h-5 text-gray-600" />
+          </button>
+        </div>
+      </div>
+
+      {/* Attendance List */}
+      <div className="flex-1 px-4 md:px-6 pb-4 min-h-0 flex flex-col">
+        <div className="bg-white rounded-2xl border border-gray-200 flex-1 flex flex-col">
+          {/* Table Header - Desktop */}
+          <div className="hidden md:grid grid-cols-12 gap-3 px-4 py-3 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase shrink-0">
+            <div className="col-span-4">Member</div>
+            <div className="col-span-2">Status</div>
+            <div className="col-span-2">Check-in</div>
+            <div className="col-span-2">Check-out</div>
+            <div className="col-span-2">Marked By</div>
+          </div>
+
+          {/* Records */}
+          <div className="flex-1 min-h-0 overflow-y-auto">
+            {dateLoading ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : records.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-center p-6">
+                <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                  <CalendarDaysIcon className="w-7 h-7 text-gray-400" />
+                </div>
+                <p className="text-gray-500 text-sm font-medium">No attendance records</p>
+                <p className="text-gray-400 text-xs mt-1">
+                  {isToday
+                    ? 'No one has checked in today yet'
+                    : 'No records found for this date'}
+                </p>
+                {isToday && (
+                  <Link
+                    href="/people/checkin"
+                    className="mt-4 flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-xl transition-colors text-sm"
+                  >
+                    <ClipboardDocumentCheckIcon className="w-4 h-4 mr-2" />
+                    Start Check-in
+                  </Link>
+                )}
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-100">
+                {records.map((record: any, index: number) => {
+                  const user =
+                    typeof record.userId === 'object' ? record.userId : null;
+                  const marker =
+                    typeof record.markedBy === 'object' ? record.markedBy : null;
+                  const statusColor =
+                    record.status === 'present'
+                      ? 'bg-green-100 text-green-700'
+                      : record.status === 'late'
+                      ? 'bg-yellow-100 text-yellow-700'
+                      : record.status === 'excused'
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'bg-red-100 text-red-700';
+
+                  return (
+                    <div key={record._id || index}>
+                      {/* Desktop Row */}
+                      <div className="hidden md:grid grid-cols-12 gap-3 px-4 py-3 items-center hover:bg-gray-50 transition-colors">
+                        <div className="col-span-4 flex items-center space-x-3 min-w-0">
+                          <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-xs font-medium shrink-0">
+                            {user?.firstName?.[0] || '?'}
+                            {user?.lastName?.[0] || ''}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              {user
+                                ? `${user.firstName} ${user.lastName}`
+                                : 'Unknown'}
+                            </p>
+                            {user?.email && (
+                              <p className="text-xs text-gray-500 truncate">
+                                {user.email}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="col-span-2">
+                          <span
+                            className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${statusColor}`}
+                          >
+                            {record.status}
+                          </span>
+                          {record.isFirstTimeVisitor && (
+                            <span className="ml-1 px-1.5 py-0.5 text-[10px] font-medium bg-purple-100 text-purple-700 rounded-full">
+                              New
+                            </span>
+                          )}
+                        </div>
+                        <div className="col-span-2 text-sm text-gray-600">
+                          {formatTime(record.checkInTime)}
+                        </div>
+                        <div className="col-span-2 text-sm text-gray-600">
+                          {record.checkOutTime
+                            ? formatTime(record.checkOutTime)
+                            : '--'}
+                        </div>
+                        <div className="col-span-2 text-sm text-gray-500 truncate">
+                          {marker
+                            ? `${marker.firstName} ${marker.lastName}`
+                            : '--'}
+                        </div>
+                      </div>
+
+                      {/* Mobile Card */}
+                      <div className="md:hidden p-3 hover:bg-gray-50 transition-colors">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-xs font-medium shrink-0">
+                            {user?.firstName?.[0] || '?'}
+                            {user?.lastName?.[0] || ''}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between">
+                              <p className="text-sm font-medium text-gray-900 truncate">
+                                {user
+                                  ? `${user.firstName} ${user.lastName}`
+                                  : 'Unknown'}
+                              </p>
+                              <span
+                                className={`inline-flex px-2 py-0.5 text-[10px] font-medium rounded-full shrink-0 ml-2 ${statusColor}`}
+                              >
+                                {record.status}
+                              </span>
+                            </div>
+                            <div className="flex items-center space-x-3 mt-1 text-xs text-gray-500">
+                              <span className="flex items-center">
+                                <ClockIcon className="w-3 h-3 mr-0.5" />
+                                {formatTime(record.checkInTime)}
+                              </span>
+                              {record.isFirstTimeVisitor && (
+                                <span className="px-1.5 py-0.5 text-[10px] font-medium bg-purple-100 text-purple-700 rounded-full">
+                                  New
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="p-3 border-t border-gray-200 shrink-0">
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-gray-500">
+                  Page {page}/{totalPages} &middot; {totalRecords} records
+                </p>
+                <div className="flex items-center space-x-1">
+                  <button
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page === 1}
+                    className="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ChevronLeftIcon className="w-4 h-4 text-gray-700" />
+                  </button>
+                  <button
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={page === totalPages}
+                    className="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ChevronRightIcon className="w-4 h-4 text-gray-700" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
