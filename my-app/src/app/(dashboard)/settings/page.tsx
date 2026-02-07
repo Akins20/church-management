@@ -49,7 +49,7 @@ export default function SettingsPage() {
 
   // Update profile mutation
   const updateProfileMutation = useMutation({
-    mutationFn: (data: typeof profileForm) => userService.updateUser(user?._id || user?.id || '', data),
+    mutationFn: (data: typeof profileForm) => userService.updateUser((user as any)?._id || user?.id || '', data),
     onSuccess: (_, variables) => {
       // Update Redux state with the form data
       dispatch(updateUser(variables));
@@ -110,7 +110,7 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="min-h-full flex flex-col bg-gray-50">
       {/* Notification */}
       {notification && (
         <div
@@ -327,7 +327,7 @@ export default function SettingsPage() {
                     <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
                       <h3 className="font-medium text-amber-900 mb-1">Forgot your current password?</h3>
                       <p className="text-sm text-amber-700 mb-3">
-                        If you can't remember your current password, we can send a reset link to your email.
+                        If you can&apos;t remember your current password, we can send a reset link to your email.
                       </p>
                       <button
                         type="button"
@@ -367,7 +367,7 @@ export default function SettingsPage() {
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span className="text-gray-500">Account ID</span>
-                          <span className="text-gray-900 font-mono">{user?._id?.slice(-8) || 'N/A'}</span>
+                          <span className="text-gray-900 font-mono">{((user as any)?._id || user?.id || '').slice(-8) || 'N/A'}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-500">Role</span>

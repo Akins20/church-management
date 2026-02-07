@@ -26,25 +26,15 @@ export const ministryService = {
     // Try different extraction methods
     let ministriesArray: Ministry[] = [];
 
-    // Method 1: Direct array in response.data
-    if (Array.isArray(response?.data)) {
-      ministriesArray = response.data;
-    }
-    // Method 2: Array in response.data.data
-    else if (Array.isArray(response?.data?.data)) {
-      ministriesArray = response.data.data;
-    }
-    // Method 3: Array in response.data.ministries
-    else if (Array.isArray(response?.data?.ministries)) {
+    // Extract ministries array from various response shapes
+    if (Array.isArray(response?.data?.data?.ministries)) {
+      ministriesArray = response.data.data.ministries;
+    } else if (Array.isArray(response?.data?.ministries)) {
       ministriesArray = response.data.ministries;
-    }
-    // Method 4: Array in response.data.data.data (triple nested)
-    else if (Array.isArray(response?.data?.data?.data)) {
-      ministriesArray = response.data.data.data;
-    }
-    // Method 5: Paginated response with data array
-    else if (response?.data?.data && Array.isArray(response.data.data.data)) {
-      ministriesArray = response.data.data.data;
+    } else if (Array.isArray(response?.data?.data)) {
+      ministriesArray = response.data.data;
+    } else if (Array.isArray(response?.data)) {
+      ministriesArray = response.data;
     }
 
     console.log('Extracted ministries array:', ministriesArray);

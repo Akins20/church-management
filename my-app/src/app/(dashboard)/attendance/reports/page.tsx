@@ -289,13 +289,13 @@ export default function AttendanceReports() {
               <div className="p-4 bg-green-50 rounded-lg text-center">
                 <p className="text-sm text-green-600">Present</p>
                 <p className="text-2xl font-bold text-green-900">
-                  {memberAttendance?.filter((a) => a.status === 'PRESENT').length || 0}
+                  {memberAttendance?.filter((a) => a.status === 'present').length || 0}
                 </p>
               </div>
               <div className="p-4 bg-yellow-50 rounded-lg text-center">
                 <p className="text-sm text-yellow-600">Late</p>
                 <p className="text-2xl font-bold text-yellow-900">
-                  {memberAttendance?.filter((a) => a.status === 'LATE').length || 0}
+                  {memberAttendance?.filter((a) => a.status === 'late').length || 0}
                 </p>
               </div>
               <div className="p-4 bg-purple-50 rounded-lg text-center">
@@ -303,7 +303,7 @@ export default function AttendanceReports() {
                 <p className="text-2xl font-bold text-purple-900">
                   {memberAttendance?.length
                     ? Math.round(
-                        (memberAttendance.filter((a) => a.status === 'PRESENT').length /
+                        (memberAttendance.filter((a) => a.status === 'present').length /
                           memberAttendance.length) *
                           100
                       )
@@ -332,17 +332,17 @@ export default function AttendanceReports() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {memberAttendance?.slice(0, 10).map((attendance) => (
-                    <tr key={attendance.id} className="hover:bg-gray-50">
+                  {memberAttendance?.slice(0, 10).map((attendance, idx) => (
+                    <tr key={attendance._id || idx} className="hover:bg-gray-50">
                       <td className="px-4 py-3 text-sm text-gray-900">
                         {new Date(attendance.date).toLocaleDateString()}
                       </td>
                       <td className="px-4 py-3">
                         <span
                           className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            attendance.status === 'PRESENT'
+                            attendance.status === 'present'
                               ? 'bg-green-100 text-green-800'
-                              : attendance.status === 'LATE'
+                              : attendance.status === 'late'
                               ? 'bg-yellow-100 text-yellow-800'
                               : 'bg-red-100 text-red-800'
                           }`}

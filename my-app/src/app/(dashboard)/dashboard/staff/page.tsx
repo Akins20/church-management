@@ -22,7 +22,7 @@ export default function StaffDashboard() {
 
   const { data: attendanceStats, isLoading: attendanceLoading } = useQuery({
     queryKey: ['attendanceStats'],
-    queryFn: attendanceService.getAttendanceStats,
+    queryFn: () => attendanceService.getAttendanceAnalytics(),
   });
 
   const { data: userStats, isLoading: userStatsLoading } = useQuery({
@@ -58,8 +58,8 @@ export default function StaffDashboard() {
     },
     {
       name: 'Avg Attendance',
-      value: attendanceStats?.averageAttendance || 0,
-      change: attendanceStats?.attendanceRate || 0,
+      value: (attendanceStats as any)?.summary?.avgAttendancePerDay || (attendanceStats as any)?.averageAttendance || 0,
+      change: (attendanceStats as any)?.summary?.attendanceRate || (attendanceStats as any)?.attendanceRate || 0,
       changeLabel: '% rate',
       icon: ChartBarIcon,
       color: 'bg-green-500',
@@ -92,7 +92,7 @@ export default function StaffDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Staff Dashboard</h1>
-          <p className="text-gray-600">Welcome back, {user?.firstName}! Here's your overview.</p>
+          <p className="text-gray-600">Welcome back, {user?.firstName}! Here&apos;s your overview.</p>
         </div>
         <div className="flex space-x-3">
           <Link href="/attendance/checkin">
@@ -238,7 +238,7 @@ export default function StaffDashboard() {
                 <BellAlertIcon className="h-5 w-5 text-yellow-600 mt-0.5" />
                 <div className="ml-3">
                   <p className="text-sm font-medium text-yellow-900">Service Planning</p>
-                  <p className="text-xs text-yellow-700">Next Sunday's service needs planning</p>
+                  <p className="text-xs text-yellow-700">Next Sunday&apos;s service needs planning</p>
                 </div>
               </div>
               <div className="flex items-start p-3 bg-blue-50 rounded-lg">

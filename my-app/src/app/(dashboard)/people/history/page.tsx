@@ -108,7 +108,7 @@ export default function PeopleHistoryPage() {
   const hasActiveFilters = filters.startDate || filters.endDate || filters.status;
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="min-h-full flex flex-col bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-4 md:px-6 py-3 md:py-4 shrink-0">
         <div className="flex items-center justify-between">
