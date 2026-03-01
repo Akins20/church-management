@@ -6,7 +6,19 @@ export const userService = {
   getUsers: async (filters?: UserFilters, page = 1, limit = 20): Promise<PaginatedResponse<User>> => {
     const params = { ...filters, page, limit };
     const response = await apiClient.get('/users', { params });
-    return response.data;
+    // Handle nested API response: { success, data: { users, total, ... } }
+    const raw = response.data;
+    if (raw?.data && typeof raw.data === 'object') {
+      const inner = raw.data;
+      return {
+        data: inner.users || inner.data || [],
+        total: inner.total || inner.totalUsers || 0,
+        page: inner.page || page,
+        limit: inner.limit || limit,
+        totalPages: inner.totalPages || 1,
+      };
+    }
+    return raw;
   },
 
   // Get user directory
