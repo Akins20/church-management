@@ -223,7 +223,7 @@ export default function PeopleHistoryPage() {
         </div>
 
         {/* Table/Cards */}
-        <div className="flex-1 p-4 md:p-6 min-h-0 overflow-y-auto">
+        <div className="flex-1 p-4 md:p-4 min-h-0 overflow-y-auto">
           {isLoading ? (
             <div className="flex items-center justify-center h-full">
               <div className="w-6 h-6 md:w-8 md:h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
@@ -294,7 +294,7 @@ export default function PeopleHistoryPage() {
               </div>
 
               {/* Desktop Table Layout */}
-              <div className="hidden md:block bg-white rounded-2xl border border-gray-200">
+              <div className="hidden md:block bg-white rounded-xl border border-gray-200">
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>

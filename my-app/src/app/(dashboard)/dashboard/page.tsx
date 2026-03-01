@@ -133,14 +133,14 @@ export default function MemberDashboard() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 p-4 md:p-6 min-h-0 overflow-y-auto">
-        <div className="h-full flex flex-col space-y-4 md:space-y-6">
+      <div className="flex-1 p-4 md:p-4 min-h-0 overflow-y-auto">
+        <div className="h-full flex flex-col space-y-4 md:space-y-3">
           {/* Stats Grid */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 shrink-0">
             {stats.map((stat) => {
               const Icon = stat.icon;
               return (
-                <div key={stat.name} className="bg-white rounded-xl md:rounded-2xl border border-gray-200 p-3 md:p-4 flex items-center space-x-3 md:space-x-4">
+                <div key={stat.name} className="bg-white rounded-xl md:rounded-xl border border-gray-200 p-3 md:p-4 flex items-center space-x-3 md:space-x-4">
                   <div className={`bg-gradient-to-br ${stat.color} p-2 md:p-3 rounded-lg md:rounded-xl`}>
                     <Icon className="w-4 md:w-5 h-4 md:h-5 text-white" />
                   </div>
@@ -154,10 +154,10 @@ export default function MemberDashboard() {
           </div>
 
           {/* Main Content */}
-          <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 min-h-0">
+          <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-3 min-h-0">
             {/* Quick Actions */}
             <div className="lg:col-span-1 flex flex-col">
-              <div className="bg-white rounded-xl md:rounded-2xl border border-gray-200 flex-1 flex flex-col">
+              <div className="bg-white rounded-xl md:rounded-xl border border-gray-200 flex-1 flex flex-col">
                 <div className="p-3 md:p-4 border-b border-gray-200 shrink-0">
                   <h2 className="font-semibold text-gray-900 text-sm md:text-base">Quick Actions</h2>
                 </div>
@@ -186,7 +186,7 @@ export default function MemberDashboard() {
 
             {/* Middle Column - Recent Note */}
             <div className="lg:col-span-1 flex flex-col">
-              <div className="bg-white rounded-xl md:rounded-2xl border border-gray-200 flex-1 flex flex-col">
+              <div className="bg-white rounded-xl md:rounded-xl border border-gray-200 flex-1 flex flex-col">
                 <div className="p-3 md:p-4 border-b border-gray-200 shrink-0">
                   <div className="flex items-center justify-between">
                     <h2 className="font-semibold text-gray-900 text-sm md:text-base">Recent Note</h2>
@@ -241,7 +241,7 @@ export default function MemberDashboard() {
 
             {/* Right Column - Recent Attendance */}
             <div className="lg:col-span-1 flex flex-col">
-              <div className="bg-white rounded-xl md:rounded-2xl border border-gray-200 flex-1 flex flex-col">
+              <div className="bg-white rounded-xl md:rounded-xl border border-gray-200 flex-1 flex flex-col">
                 <div className="p-3 md:p-4 border-b border-gray-200 shrink-0">
                   <div className="flex items-center justify-between">
                     <h2 className="font-semibold text-gray-900 text-sm md:text-base">Recent Attendance</h2>

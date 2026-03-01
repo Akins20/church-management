@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { noteService } from '@/services';
 import {
@@ -35,7 +35,83 @@ export default function NotepadNotesPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [showSignature, setShowSignature] = useState(false);
-  const [signature, setSignature] = useState('');
+  const [signatureDataUrl, setSignatureDataUrl] = useState('');
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const isDrawingRef = useRef(false);
+  const lastPointRef = useRef<{ x: number; y: number } | null>(null);
+
+  const getCanvasPoint = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return null;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    if ('touches' in e) {
+      const touch = e.touches[0] || e.changedTouches[0];
+      return { x: (touch.clientX - rect.left) * scaleX, y: (touch.clientY - rect.top) * scaleY };
+    }
+    return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
+  }, []);
+
+  const startDrawing = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    isDrawingRef.current = true;
+    lastPointRef.current = getCanvasPoint(e);
+  }, [getCanvasPoint]);
+
+  const draw = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    if (!isDrawingRef.current) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    const point = getCanvasPoint(e);
+    if (!ctx || !point || !lastPointRef.current) return;
+    ctx.beginPath();
+    ctx.moveTo(lastPointRef.current.x, lastPointRef.current.y);
+    ctx.lineTo(point.x, point.y);
+    ctx.strokeStyle = '#1e293b';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+    lastPointRef.current = point;
+  }, [getCanvasPoint]);
+
+  const stopDrawing = useCallback(() => {
+    if (isDrawingRef.current) {
+      isDrawingRef.current = false;
+      lastPointRef.current = null;
+      // Save signature as data URL
+      const canvas = canvasRef.current;
+      if (canvas) {
+        setSignatureDataUrl(canvas.toDataURL('image/png'));
+      }
+    }
+  }, []);
+
+  const clearSignature = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+    setSignatureDataUrl('');
+  }, []);
+
+  // Initialize canvas when signature panel opens
+  useEffect(() => {
+    if (showSignature && canvasRef.current) {
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        canvas.width = canvas.offsetWidth * 2;
+        canvas.height = canvas.offsetHeight * 2;
+        ctx.scale(1, 1);
+      }
+    }
+  }, [showSignature]);
 
   // Fetch notes with pagination
   const { data, isLoading } = useQuery({
@@ -133,8 +209,8 @@ export default function NotepadNotesPage() {
       return;
     }
     setIsSaving(true);
-    const contentWithSignature = showSignature && signature.trim()
-      ? `${currentNote.content}\n\n---\n${signature}`
+    const contentWithSignature = showSignature && signatureDataUrl
+      ? `${currentNote.content}\n\n---\n[signature:${signatureDataUrl}]`
       : currentNote.content;
     saveNoteMutation.mutate({
       id: currentNote.id || undefined,
@@ -199,14 +275,19 @@ export default function NotepadNotesPage() {
               <p className="text-gray-500 text-xs md:text-sm mt-0.5 hidden sm:block">Create and manage your notes</p>
             </div>
           </div>
-          <div className="flex items-center text-xs text-gray-500">
-            {total} notes
-          </div>
+          <button
+            onClick={handleNewNote}
+            className="flex items-center px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-xl transition-colors text-sm"
+          >
+            <PlusIcon className="w-4 h-4 mr-1.5" />
+            <span className="hidden sm:inline">New Note</span>
+            <span className="sm:hidden">New</span>
+          </button>
         </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex flex-col lg:flex-row min-h-0 p-4 md:p-6 gap-4 overflow-y-auto lg:overflow-hidden">
+      <div className="flex-1 flex flex-col lg:flex-row min-h-0 p-4 md:p-4 gap-4 overflow-y-auto lg:overflow-hidden">
         {/* Notes List - Hidden on mobile when editing */}
         <div className={`lg:w-72 flex flex-col shrink-0 ${isEditing ? 'hidden lg:flex' : 'flex'}`}>
           {/* New Note button for mobile */}
@@ -217,7 +298,7 @@ export default function NotepadNotesPage() {
             <PlusIcon className="w-4 h-4 mr-2" />
             Create New Note
           </button>
-          <div className="bg-white rounded-2xl border border-gray-200 flex-1 flex flex-col min-h-0">
+          <div className="bg-white rounded-xl border border-gray-200 flex-1 flex flex-col min-h-0">
             <div className="p-4 border-b border-gray-200 shrink-0">
               <div className="flex items-center justify-between">
                 <h2 className="font-semibold text-gray-900">Recent Notes</h2>
@@ -304,7 +385,7 @@ export default function NotepadNotesPage() {
 
         {/* Note Editor - Full width on mobile when editing */}
         <div className={`flex-1 flex flex-col min-w-0 ${!isEditing ? 'hidden lg:flex' : 'flex'}`}>
-          <div className="bg-white rounded-2xl border border-gray-200 flex-1 flex flex-col">
+          <div className="bg-white rounded-xl border border-gray-200 flex-1 flex flex-col">
             {isEditing ? (
               <>
                 {/* Editor Header */}
@@ -330,20 +411,43 @@ export default function NotepadNotesPage() {
                   <div className="border-t border-gray-100 pt-3 mt-3 shrink-0">
                     <button
                       type="button"
-                      onClick={() => setShowSignature(!showSignature)}
+                      onClick={() => { setShowSignature(!showSignature); if (showSignature) clearSignature(); }}
                       className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center"
                     >
                       <PencilSquareIcon className="w-3.5 h-3.5 mr-1" />
                       {showSignature ? 'Hide Signature' : 'Add Signature'}
                     </button>
                     {showSignature && (
-                      <input
-                        type="text"
-                        value={signature}
-                        onChange={(e) => setSignature(e.target.value)}
-                        placeholder="Enter your signature..."
-                        className="w-full mt-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white text-sm text-gray-900 placeholder-gray-400"
-                      />
+                      <div className="mt-2">
+                        <div className="relative border border-gray-200 rounded-xl overflow-hidden bg-white">
+                          <canvas
+                            ref={canvasRef}
+                            className="w-full h-28 md:h-32 cursor-crosshair touch-none"
+                            onMouseDown={startDrawing}
+                            onMouseMove={draw}
+                            onMouseUp={stopDrawing}
+                            onMouseLeave={stopDrawing}
+                            onTouchStart={startDrawing}
+                            onTouchMove={draw}
+                            onTouchEnd={stopDrawing}
+                          />
+                          {!signatureDataUrl && (
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                              <p className="text-gray-300 text-sm">Draw your signature here</p>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between mt-1.5">
+                          <p className="text-[10px] text-gray-400">Use mouse or finger to draw</p>
+                          <button
+                            type="button"
+                            onClick={clearSignature}
+                            className="text-[10px] text-red-500 hover:text-red-600 font-medium"
+                          >
+                            Clear
+                          </button>
+                        </div>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -394,7 +498,7 @@ export default function NotepadNotesPage() {
                 </div>
               </>
             ) : (
-              <div className="flex-1 flex flex-col items-center justify-center text-center p-6">
+              <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                   <DocumentTextIcon className="w-8 h-8 text-gray-400" />
                 </div>
@@ -417,7 +521,7 @@ export default function NotepadNotesPage() {
 
           {/* Tips Card - Hidden on mobile */}
           {isEditing && (
-            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-2xl p-4 shrink-0 hidden md:block">
+            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4 shrink-0 hidden md:block">
               <div className="flex items-start space-x-3">
                 <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
                   <svg className="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">

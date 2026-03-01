@@ -100,7 +100,7 @@ export default function AnalyticsDashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -217,7 +217,7 @@ export default function AnalyticsDashboard() {
 
       {/* Attendance Charts */}
       {selectedMetric === 'attendance' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           <Card title="Weekly Attendance by Service">
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
@@ -263,7 +263,7 @@ export default function AnalyticsDashboard() {
 
       {/* Membership Charts */}
       {selectedMetric === 'members' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           <Card title="Membership Growth Trend">
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
@@ -312,7 +312,7 @@ export default function AnalyticsDashboard() {
 
       {/* Engagement Charts */}
       {selectedMetric === 'engagement' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           <Card title="Ministry Participation">
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
@@ -352,7 +352,7 @@ export default function AnalyticsDashboard() {
       )}
 
       {/* Additional Insights */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         <Card title="Top Performing Services">
           <div className="space-y-4">
             {[

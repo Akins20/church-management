@@ -152,7 +152,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed: externalCollapsed
   return (
     <div
       className={`${
-        collapsed ? 'w-20' : 'w-72'
+        collapsed ? 'w-16' : 'w-56'
       } bg-[#1c1c1e] h-screen text-white flex flex-col transition-all duration-300 ease-in-out`}
     >
       {/* Header */}

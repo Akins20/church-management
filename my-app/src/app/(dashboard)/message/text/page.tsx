@@ -209,7 +209,7 @@ export default function MessageTextPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Send Text Message</h1>
@@ -258,11 +258,11 @@ export default function MessageTextPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         {/* Compose Form */}
         <div className="lg:col-span-2">
           <Card title="Compose Text Message">
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-3">
               {/* Recipient Group */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -330,7 +330,7 @@ export default function MessageTextPage() {
               {formData.message && (
                 <div className="bg-gray-50 rounded-lg p-4">
                   <p className="text-xs font-medium text-gray-500 mb-2">Preview</p>
-                  <div className="bg-green-100 rounded-2xl rounded-bl-none p-3 max-w-xs">
+                  <div className="bg-green-100 rounded-xl rounded-bl-none p-3 max-w-xs">
                     <p className="text-sm text-gray-800">{formData.message}</p>
                   </div>
                 </div>
@@ -353,7 +353,7 @@ export default function MessageTextPage() {
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
+        <div className="space-y-3">
           {/* Recent Messages */}
           <Card title="Recent Messages">
             <div className="space-y-3">
