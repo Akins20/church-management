@@ -263,10 +263,10 @@ export default function MessageEmailPage() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex flex-col lg:flex-row min-h-0 p-4 md:p-6 gap-4 md:gap-6">
+      <div className="flex-1 flex flex-col lg:flex-row min-h-0 p-4 md:p-4 gap-4 md:gap-3">
         {/* Compose Form */}
         <div className="flex-1 min-w-0">
-          <div className="bg-white rounded-2xl border border-gray-200 h-full flex flex-col">
+          <div className="bg-white rounded-xl border border-gray-200 h-full flex flex-col">
             <div className="p-4 md:p-5 border-b border-gray-200 shrink-0">
               <h2 className="font-semibold text-gray-900">New Message</h2>
             </div>
@@ -504,7 +504,7 @@ export default function MessageEmailPage() {
         {/* Right Sidebar */}
         <div className="hidden lg:flex w-72 flex-col gap-4 shrink-0">
           {/* Recent Emails */}
-          <div className="bg-white rounded-2xl border border-gray-200 flex-1 flex flex-col min-h-[200px]">
+          <div className="bg-white rounded-xl border border-gray-200 flex-1 flex flex-col min-h-[200px]">
             <div className="p-4 border-b border-gray-200 shrink-0">
               <h2 className="font-semibold text-gray-900">Recent Emails</h2>
             </div>
@@ -553,7 +553,7 @@ export default function MessageEmailPage() {
           </div>
 
           {/* Tips Card */}
-          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 shrink-0">
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 shrink-0">
             <div className="flex items-start space-x-3">
               <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
                 <svg className="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">

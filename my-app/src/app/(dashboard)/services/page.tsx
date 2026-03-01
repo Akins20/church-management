@@ -67,19 +67,19 @@ export default function ServiceCalendar() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Header */}
       <div className="text-center">
         <h1 className="text-3xl font-bold text-gray-900">Service Calendar</h1>
         <p className="text-gray-600 mt-2">View upcoming services and events</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         {/* Calendar */}
         <div className="lg:col-span-2">
           <Card>
             {/* Calendar Header */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-3">
               <button
                 onClick={prevMonth}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -170,7 +170,7 @@ export default function ServiceCalendar() {
         </div>
 
         {/* Upcoming Services */}
-        <div className="space-y-6">
+        <div className="space-y-3">
           <Card title="Upcoming Services">
             <div className="space-y-4">
               {upcomingServices && upcomingServices.length > 0 ? (

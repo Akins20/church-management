@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" pr create --repo TaiwoTom/church-management --title \"UI improvements and API integration updates\" --body \"$\\(cat <<''EOF''\n## Summary\n\n- **Settings Page**: Added new settings page with Profile, Password, Notifications, and Security tabs\n- **Sidebar Updates**: Added Dashboard and Settings navigation items, user profile section with logout button\n- **Layout Fixes**: Removed header from dashboard, all pages now use fixed `h-screen` layout \\(no scrolling\\)\n- **Check-in Form**: Ministry field now always visible, fixed text colors to black\n- **Ministries Page**: Reduced to 6 items per page for better screen fit\n- **Auth Pages**: Simplified login/register forms, removed unnecessary fields \\(DOB, address, image upload\\), added decorative patterns\n- **API Integration**: Connected dashboard endpoints, added note service and message history page\n\n## Changes\n\n- 16 files changed\n- New pages: Settings, Message History\n- New service: Note service\n- Fixed responsive layouts across all dashboard pages\n\n## Test Plan\n\n- [ ] Verify login/register pages display correctly without scrolling\n- [ ] Test settings page tabs \\(Profile, Password, Notifications, Security\\)\n- [ ] Confirm check-in form shows ministry field for all modes\n- [ ] Check ministries page pagination \\(6 items per page\\)\n- [ ] Verify sidebar navigation and logout functionality\n- [ ] Test note creation and auto-save functionality\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\nEOF\n\\)\")",
+      "Bash(ls:*)",
+      "Bash(npx next lint:*)",
+      "Bash(npm run build:*)",
+      "Bash(gh pr create:*)"
+    ]
+  }
+}

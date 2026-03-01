@@ -10,7 +10,6 @@ import {
   UserGroupIcon,
   CheckCircleIcon,
   XCircleIcon,
-  MagnifyingGlassIcon,
   UserPlusIcon,
   ClockIcon,
   ExclamationTriangleIcon,
@@ -275,45 +274,36 @@ export default function PeopleCheckInPage() {
       <div className="flex-1 flex min-h-0">
         {/* Left Panel - Check-in Form */}
         <div className="flex-1 flex flex-col overflow-y-auto">
-          <div className="flex-1 p-4 md:p-6 flex items-start justify-center">
+          <div className="flex-1 p-4 md:p-4 flex items-start justify-center">
             <div className="max-w-xl w-full">
-              {/* Mode Indicator */}
-              <div className="mb-3 md:mb-4 flex items-center space-x-2">
-                <div
-                  className={`px-2.5 md:px-3 py-1 md:py-1.5 rounded-full text-xs md:text-sm font-medium ${
-                    mode === 'search'
-                      ? 'bg-gray-200 text-gray-700'
-                      : mode === 'quick_checkin'
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-blue-100 text-blue-700'
-                  }`}
-                >
-                  {mode === 'search' && (
-                    <>
-                      <MagnifyingGlassIcon className="w-3 h-3 md:w-4 md:h-4 inline mr-1" />
-                      Ready
-                    </>
-                  )}
-                  {mode === 'quick_checkin' && (
-                    <>
-                      <CheckCircleSolid className="w-3 h-3 md:w-4 md:h-4 inline mr-1" />
-                      Member Found
-                    </>
-                  )}
-                  {mode === 'new_member' && (
-                    <>
-                      <UserPlusIcon className="w-3 h-3 md:w-4 md:h-4 inline mr-1" />
-                      New Member
-                    </>
-                  )}
+              {/* Mode Indicator - only show when member found or new member */}
+              {mode !== 'search' && (
+                <div className="mb-3 md:mb-4 flex items-center space-x-2">
+                  <div
+                    className={`px-2.5 md:px-3 py-1 md:py-1.5 rounded-full text-xs md:text-sm font-medium ${
+                      mode === 'quick_checkin'
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-blue-100 text-blue-700'
+                    }`}
+                  >
+                    {mode === 'quick_checkin' && (
+                      <>
+                        <CheckCircleSolid className="w-3 h-3 md:w-4 md:h-4 inline mr-1" />
+                        Member Found
+                      </>
+                    )}
+                    {mode === 'new_member' && (
+                      <>
+                        <UserPlusIcon className="w-3 h-3 md:w-4 md:h-4 inline mr-1" />
+                        New Member
+                      </>
+                    )}
+                  </div>
                 </div>
-                {lookupMutation.isPending && (
-                  <div className="w-3 h-3 md:w-4 md:h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                )}
-              </div>
+              )}
 
               {/* Form Card */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 md:p-5">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-5">
                 <form onSubmit={handleSubmit} className="space-y-3 md:space-y-4">
                   {/* Name Fields */}
                   <div className="grid grid-cols-2 gap-2 md:gap-3">

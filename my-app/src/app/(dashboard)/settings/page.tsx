@@ -139,10 +139,10 @@ export default function SettingsPage() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex flex-col lg:flex-row min-h-0 p-4 md:p-6 gap-4">
+      <div className="flex-1 flex flex-col lg:flex-row min-h-0 p-4 md:p-4 gap-4">
         {/* Tabs - Horizontal on mobile, Vertical sidebar on desktop */}
         <div className="lg:w-56 shrink-0">
-          <div className="bg-white rounded-2xl border border-gray-200 p-2 md:p-3">
+          <div className="bg-white rounded-xl border border-gray-200 p-2 md:p-3">
             <div className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
@@ -167,16 +167,16 @@ export default function SettingsPage() {
 
         {/* Tab Content */}
         <div className="flex-1 min-h-0">
-          <div className="bg-white rounded-2xl border border-gray-200 h-full flex flex-col">
+          <div className="bg-white rounded-xl border border-gray-200 h-full flex flex-col">
             {/* Profile Tab */}
             {activeTab === 'profile' && (
               <>
-                <div className="p-6 border-b border-gray-200 shrink-0">
+                <div className="p-4 border-b border-gray-200 shrink-0">
                   <h2 className="text-lg font-semibold text-gray-900">Profile Information</h2>
                   <p className="text-sm text-gray-500 mt-1">Update your personal information</p>
                 </div>
-                <div className="flex-1 p-6 overflow-auto">
-                  <form onSubmit={handleProfileSubmit} className="max-w-lg space-y-5">
+                <div className="flex-1 p-4 overflow-auto">
+                  <form onSubmit={handleProfileSubmit} className="max-w-2xl space-y-3">
                     {/* Avatar */}
                     <div className="flex items-center space-x-4">
                       <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-2xl">
@@ -245,12 +245,12 @@ export default function SettingsPage() {
             {/* Password Tab */}
             {activeTab === 'password' && (
               <>
-                <div className="p-6 border-b border-gray-200 shrink-0">
+                <div className="p-4 border-b border-gray-200 shrink-0">
                   <h2 className="text-lg font-semibold text-gray-900">Change Password</h2>
                   <p className="text-sm text-gray-500 mt-1">Update your password to keep your account secure</p>
                 </div>
-                <div className="flex-1 p-6 overflow-auto">
-                  <form onSubmit={handlePasswordSubmit} className="max-w-lg space-y-5">
+                <div className="flex-1 p-4 overflow-auto">
+                  <form onSubmit={handlePasswordSubmit} className="max-w-2xl space-y-3">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
                       <div className="relative">
@@ -323,7 +323,7 @@ export default function SettingsPage() {
                   </form>
 
                   {/* Forgot Password Section */}
-                  <div className="mt-8 pt-6 border-t border-gray-200 max-w-lg">
+                  <div className="mt-8 pt-6 border-t border-gray-200 max-w-2xl">
                     <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
                       <h3 className="font-medium text-amber-900 mb-1">Forgot your current password?</h3>
                       <p className="text-sm text-amber-700 mb-3">
@@ -355,12 +355,12 @@ export default function SettingsPage() {
             {/* Security Tab */}
             {activeTab === 'security' && (
               <>
-                <div className="p-6 border-b border-gray-200 shrink-0">
+                <div className="p-4 border-b border-gray-200 shrink-0">
                   <h2 className="text-lg font-semibold text-gray-900">Security Settings</h2>
                   <p className="text-sm text-gray-500 mt-1">Manage your account security</p>
                 </div>
-                <div className="flex-1 p-6 overflow-auto">
-                  <div className="max-w-lg space-y-6">
+                <div className="flex-1 p-4 overflow-auto">
+                  <div className="max-w-2xl space-y-3">
                     {/* Account Info */}
                     <div className="p-4 bg-gray-50 rounded-xl">
                       <h3 className="font-medium text-gray-900 mb-3">Account Information</h3>

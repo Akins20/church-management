@@ -87,7 +87,7 @@ export default function StaffDashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Welcome Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -134,7 +134,7 @@ export default function StaffDashboard() {
         })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         {/* Upcoming Services */}
         <Card title="Upcoming Services" className="lg:col-span-2">
           <div className="overflow-x-auto">
@@ -202,7 +202,7 @@ export default function StaffDashboard() {
         </Card>
 
         {/* Quick Actions & Notifications */}
-        <div className="space-y-6">
+        <div className="space-y-3">
           <Card title="Quick Actions">
             <div className="space-y-3">
               <Link href="/attendance/checkin" className="block">

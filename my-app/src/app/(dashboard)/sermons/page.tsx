@@ -52,7 +52,7 @@ export default function SermonLibrary() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Header */}
       <div className="text-center max-w-2xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900">Sermon Library</h1>
@@ -102,12 +102,12 @@ export default function SermonLibrary() {
       </div>
 
       {/* Sermon Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         {filteredSermons && filteredSermons.length > 0 ? (
           filteredSermons.map((sermon) => (
             <Card key={sermon.id} className="flex flex-col">
               {/* Thumbnail Placeholder */}
-              <div className="relative aspect-video bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg mb-4 overflow-hidden">
+              <div className="relative aspect-video bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg mb-2 overflow-hidden">
                 <div className="absolute inset-0 flex items-center justify-center">
                   <button className="bg-white/20 hover:bg-white/30 backdrop-blur-sm p-4 rounded-full transition-colors">
                     <PlayIcon className="h-10 w-10 text-white" />
@@ -136,13 +136,13 @@ export default function SermonLibrary() {
                 </div>
               )}
 
-              <div className="flex items-center text-sm text-gray-500 mb-4">
+              <div className="flex items-center text-sm text-gray-500 mb-2">
                 <CalendarIcon className="h-4 w-4 mr-1" />
                 <span>{new Date(sermon.date).toLocaleDateString()}</span>
               </div>
 
               {/* Stats */}
-              <div className="flex items-center text-xs text-gray-400 mb-4">
+              <div className="flex items-center text-xs text-gray-400 mb-2">
                 <span>{sermon.views} views</span>
                 <span className="mx-2">•</span>
                 <span>{sermon.downloads} downloads</span>
@@ -165,7 +165,7 @@ export default function SermonLibrary() {
           ))
         ) : (
           <div className="col-span-full text-center py-12">
-            <BookOpenIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <BookOpenIcon className="h-16 w-16 text-gray-400 mx-auto mb-2" />
             <h3 className="text-lg font-medium text-gray-900">No sermons found</h3>
             <p className="text-gray-500">Try adjusting your search or filters</p>
           </div>

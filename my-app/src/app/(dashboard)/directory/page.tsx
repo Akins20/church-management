@@ -57,7 +57,7 @@ export default function MemberDirectory() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -157,7 +157,7 @@ export default function MemberDirectory() {
       </div>
 
       {/* Member Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         {users?.data && users.data.length > 0 ? (
           users.data.map((member) => (
             <Card key={member.id} hoverable className="transition-transform hover:scale-105">
