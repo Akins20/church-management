@@ -45,6 +45,15 @@ export default function AttendanceOverview() {
       ),
   });
 
+  // Fetch recent attendance (last 4 records, no date filter)
+  const { data: recentData } = useQuery({
+    queryKey: ['attendance', 'recent'],
+    queryFn: () => attendanceService.getAttendance({}, 1, 4),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const recentRecords = (recentData as any)?.attendance || [];
+
   // Fetch analytics (cached, runs once)
   const { data: analytics } = useQuery({
     queryKey: ['attendanceAnalytics'],
@@ -222,7 +231,7 @@ export default function AttendanceOverview() {
 
       {/* Attendance List */}
       <div className="flex-1 px-4 md:px-6 pb-4 min-h-0 flex flex-col">
-        <div className="bg-white rounded-2xl border border-gray-200 flex-1 flex flex-col">
+        <div className="bg-white rounded-xl border border-gray-200 flex-1 flex flex-col">
           {/* Table Header - Desktop */}
           <div className="hidden md:grid grid-cols-12 gap-3 px-4 py-3 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase shrink-0">
             <div className="col-span-4">Member</div>
@@ -239,24 +248,68 @@ export default function AttendanceOverview() {
                 <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
               </div>
             ) : records.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-center p-6">
-                <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mb-3">
-                  <CalendarDaysIcon className="w-7 h-7 text-gray-400" />
+              <div className="p-4 md:p-4">
+                <div className="flex flex-col items-center text-center mb-6">
+                  <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-2">
+                    <CalendarDaysIcon className="w-6 h-6 text-gray-400" />
+                  </div>
+                  <p className="text-gray-500 text-sm font-medium">
+                    {isToday ? 'No one has checked in today yet' : 'No records for this date'}
+                  </p>
+                  {isToday && (
+                    <Link
+                      href="/people/checkin"
+                      className="mt-3 flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-xl transition-colors text-sm"
+                    >
+                      <ClipboardDocumentCheckIcon className="w-4 h-4 mr-2" />
+                      Start Check-in
+                    </Link>
+                  )}
                 </div>
-                <p className="text-gray-500 text-sm font-medium">No attendance records</p>
-                <p className="text-gray-400 text-xs mt-1">
-                  {isToday
-                    ? 'No one has checked in today yet'
-                    : 'No records found for this date'}
-                </p>
-                {isToday && (
-                  <Link
-                    href="/people/checkin"
-                    className="mt-4 flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-xl transition-colors text-sm"
-                  >
-                    <ClipboardDocumentCheckIcon className="w-4 h-4 mr-2" />
-                    Start Check-in
-                  </Link>
+
+                {/* Recent Attendance */}
+                {recentRecords.length > 0 && (
+                  <div>
+                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+                      Recent Attendance
+                    </h3>
+                    <div className="divide-y divide-gray-100">
+                      {recentRecords.map((record: any, index: number) => {
+                        const user = typeof record.userId === 'object' ? record.userId : null;
+                        const statusColor =
+                          record.status === 'present'
+                            ? 'bg-green-100 text-green-700'
+                            : record.status === 'late'
+                            ? 'bg-yellow-100 text-yellow-700'
+                            : record.status === 'excused'
+                            ? 'bg-blue-100 text-blue-700'
+                            : 'bg-red-100 text-red-700';
+
+                        return (
+                          <div key={record._id || index} className="flex items-center space-x-3 py-2.5">
+                            <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-xs font-medium shrink-0">
+                              {user?.firstName?.[0] || '?'}{user?.lastName?.[0] || ''}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 truncate">
+                                {user ? `${user.firstName} ${user.lastName}` : 'Unknown'}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {new Date(record.date || record.checkInTime).toLocaleDateString('en-US', {
+                                  month: 'short', day: 'numeric',
+                                })}
+                                {' · '}
+                                {formatTime(record.checkInTime)}
+                              </p>
+                            </div>
+                            <span className={`px-2 py-0.5 text-[10px] font-medium rounded-full shrink-0 ${statusColor}`}>
+                              {record.status}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 )}
               </div>
             ) : (

@@ -53,10 +53,11 @@ export default function MemberDashboard() {
     enabled: !!userId && !isStaffOrAdmin,
   });
 
-  // Fetch total members count
+  // Fetch total members count (staff/admin only - endpoint requires elevated role)
   const { data: usersData } = useQuery({
     queryKey: ['usersStats'],
     queryFn: () => userService.getUsers({}, 1, 1),
+    enabled: isStaffOrAdmin,
   });
 
   // Fetch ministries count
@@ -78,7 +79,7 @@ export default function MemberDashboard() {
 
   const todayCount = todayAttendance?.length || 0;
   const notesList = recentNotes?.notes || [];
-  const totalMembers = usersData?.total || 0;
+  const totalMembers = usersData?.total || (usersData as any)?.data?.total || 0;
   const totalMinistries = ministriesData?.total || ministriesData?.data?.length || 0;
   const avgAttendance = attendanceAnalytics?.summary?.avgAttendancePerDay
     ? Math.round(attendanceAnalytics.summary.avgAttendancePerDay)
@@ -93,9 +94,9 @@ export default function MemberDashboard() {
 
   const memberStats = [
     { name: 'Attendance Rate', value: `${attendanceRate}%`, icon: ChartBarIcon, color: 'from-blue-500 to-blue-600' },
-    { name: 'Services Count', value: (attendanceAnalytics?.summary as any)?.totalServices || attendanceAnalytics?.summary?.totalDays || attendanceList.length || 0, icon: CheckCircleIcon, color: 'from-green-500 to-green-600' },
+    { name: 'Services Attended', value: attendanceList.filter(a => a.status === 'present').length, icon: CheckCircleIcon, color: 'from-green-500 to-green-600' },
     { name: 'Ministries', value: totalMinistries, icon: UserGroupIcon, color: 'from-purple-500 to-purple-600' },
-    { name: 'Members', value: totalMembers, icon: ClockIcon, color: 'from-orange-500 to-orange-600' },
+    { name: 'Total Services', value: (attendanceAnalytics?.summary as any)?.totalServices || attendanceAnalytics?.summary?.totalDays || attendanceList.length || 0, icon: CalendarIcon, color: 'from-orange-500 to-orange-600' },
   ];
 
   const stats = isStaffOrAdmin ? adminStats : memberStats;
@@ -118,7 +119,7 @@ export default function MemberDashboard() {
       <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-4 md:px-6 py-4 md:py-5 shrink-0">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg md:text-2xl font-bold text-white">Welcome, Admin!</h1>
+            <h1 className="text-lg md:text-2xl font-bold text-white">Welcome, {user?.firstName || 'User'}!</h1>
             <p className="text-blue-100 text-xs md:text-sm mt-0.5 hidden sm:block">
               {isStaffOrAdmin ? 'Manage your church operations from here' : "Here's what's happening at church"}
             </p>
@@ -133,14 +134,14 @@ export default function MemberDashboard() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 p-4 md:p-6 min-h-0 overflow-y-auto">
-        <div className="h-full flex flex-col space-y-4 md:space-y-6">
+      <div className="flex-1 p-4 md:p-4 min-h-0 overflow-y-auto">
+        <div className="h-full flex flex-col space-y-4 md:space-y-3">
           {/* Stats Grid */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 shrink-0">
             {stats.map((stat) => {
               const Icon = stat.icon;
               return (
-                <div key={stat.name} className="bg-white rounded-xl md:rounded-2xl border border-gray-200 p-3 md:p-4 flex items-center space-x-3 md:space-x-4">
+                <div key={stat.name} className="bg-white rounded-xl md:rounded-xl border border-gray-200 p-3 md:p-4 flex items-center space-x-3 md:space-x-4">
                   <div className={`bg-gradient-to-br ${stat.color} p-2 md:p-3 rounded-lg md:rounded-xl`}>
                     <Icon className="w-4 md:w-5 h-4 md:h-5 text-white" />
                   </div>
@@ -154,10 +155,10 @@ export default function MemberDashboard() {
           </div>
 
           {/* Main Content */}
-          <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 min-h-0">
+          <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-3 min-h-0">
             {/* Quick Actions */}
             <div className="lg:col-span-1 flex flex-col">
-              <div className="bg-white rounded-xl md:rounded-2xl border border-gray-200 flex-1 flex flex-col">
+              <div className="bg-white rounded-xl md:rounded-xl border border-gray-200 flex-1 flex flex-col">
                 <div className="p-3 md:p-4 border-b border-gray-200 shrink-0">
                   <h2 className="font-semibold text-gray-900 text-sm md:text-base">Quick Actions</h2>
                 </div>
@@ -186,7 +187,7 @@ export default function MemberDashboard() {
 
             {/* Middle Column - Recent Note */}
             <div className="lg:col-span-1 flex flex-col">
-              <div className="bg-white rounded-xl md:rounded-2xl border border-gray-200 flex-1 flex flex-col">
+              <div className="bg-white rounded-xl md:rounded-xl border border-gray-200 flex-1 flex flex-col">
                 <div className="p-3 md:p-4 border-b border-gray-200 shrink-0">
                   <div className="flex items-center justify-between">
                     <h2 className="font-semibold text-gray-900 text-sm md:text-base">Recent Note</h2>
@@ -241,7 +242,7 @@ export default function MemberDashboard() {
 
             {/* Right Column - Recent Attendance */}
             <div className="lg:col-span-1 flex flex-col">
-              <div className="bg-white rounded-xl md:rounded-2xl border border-gray-200 flex-1 flex flex-col">
+              <div className="bg-white rounded-xl md:rounded-xl border border-gray-200 flex-1 flex flex-col">
                 <div className="p-3 md:p-4 border-b border-gray-200 shrink-0">
                   <div className="flex items-center justify-between">
                     <h2 className="font-semibold text-gray-900 text-sm md:text-base">Recent Attendance</h2>
@@ -285,37 +286,43 @@ export default function MemberDashboard() {
                     </div>
                   ) : attendanceList.length > 0 ? (
                     <div className="space-y-2">
-                      {attendanceList.slice(0, 4).map((attendance: any, index: number) => (
-                        <div
-                          key={attendance._id || index}
-                          className="flex items-center justify-between p-3 bg-gray-50 rounded-xl"
-                        >
-                          <div className="flex items-center space-x-3">
-                            <div className={`p-2 rounded-lg ${
-                              attendance.status === 'present' ? 'bg-green-100' : 'bg-red-100'
+                      {attendanceList.slice(0, 4).map((attendance: any, index: number) => {
+                        const attendee = typeof attendance.userId === 'object' ? attendance.userId : null;
+                        const serviceName = attendance.serviceId?.theme || attendance.notes || 'Church Service';
+                        return (
+                          <div
+                            key={attendance._id || index}
+                            className="flex items-center justify-between p-3 bg-gray-50 rounded-xl"
+                          >
+                            <div className="flex items-center space-x-3">
+                              <div className={`p-2 rounded-lg ${
+                                attendance.status === 'present' ? 'bg-green-100' : 'bg-red-100'
+                              }`}>
+                                {attendance.status === 'present' ? (
+                                  <CheckCircleIcon className="w-4 h-4 text-green-600" />
+                                ) : (
+                                  <ClockIcon className="w-4 h-4 text-red-600" />
+                                )}
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-gray-900">
+                                  {attendee ? `${attendee.firstName} ${attendee.lastName}` : serviceName}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  {new Date(attendance.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                                </p>
+                              </div>
+                            </div>
+                            <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                              attendance.status === 'present'
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-red-100 text-red-700'
                             }`}>
-                              {attendance.status === 'present' ? (
-                                <CheckCircleIcon className="w-4 h-4 text-green-600" />
-                              ) : (
-                                <ClockIcon className="w-4 h-4 text-red-600" />
-                              )}
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium text-gray-900">Sunday Service</p>
-                              <p className="text-xs text-gray-500">
-                                {new Date(attendance.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                              </p>
-                            </div>
+                              {attendance.status}
+                            </span>
                           </div>
-                          <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                            attendance.status === 'present'
-                              ? 'bg-green-100 text-green-700'
-                              : 'bg-red-100 text-red-700'
-                          }`}>
-                            {attendance.status}
-                          </span>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   ) : (
                     <div className="flex-1 flex flex-col items-center justify-center text-center h-full">

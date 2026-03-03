@@ -66,7 +66,7 @@ export default function AttendanceReports() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -162,7 +162,7 @@ export default function AttendanceReports() {
       {/* Overview Report */}
       {reportType === 'overview' && (
         <>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             {/* Monthly Trend */}
             <Card title="Monthly Attendance Trend">
               <div className="h-80">
@@ -266,7 +266,7 @@ export default function AttendanceReports() {
 
       {/* Individual Report */}
       {reportType === 'individual' && selectedMember && (
-        <div className="space-y-6">
+        <div className="space-y-3">
           <Card>
             <div className="flex items-center space-x-4 mb-6">
               <div className="h-16 w-16 rounded-full bg-gray-200 overflow-hidden">
