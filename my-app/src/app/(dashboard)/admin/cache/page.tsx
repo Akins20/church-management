@@ -177,7 +177,7 @@ export default function CacheManagement() {
   const memoryPercentage = (mockStats.memoryUsed / mockStats.memoryLimit) * 100;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -295,7 +295,7 @@ export default function CacheManagement() {
       </Card>
 
       {/* Cache Categories */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         <Card title="Cache by Category">
           <div className="space-y-3">
             {cacheCategories.map((category) => (
@@ -483,7 +483,7 @@ export default function CacheManagement() {
 
       {/* Cache Configuration */}
       <Card title="Cache Configuration">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">

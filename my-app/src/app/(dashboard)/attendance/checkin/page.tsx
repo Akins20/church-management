@@ -67,7 +67,7 @@ export default function CheckInPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -120,7 +120,7 @@ export default function CheckInPage() {
       </Card>
 
       {/* Search and Check-In Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         {/* Search Panel */}
         <div className="lg:col-span-2">
           <Card title="Member Search">
@@ -205,7 +205,7 @@ export default function CheckInPage() {
         </div>
 
         {/* Quick Stats Panel */}
-        <div className="space-y-6">
+        <div className="space-y-3">
           <Card title="Today's Summary">
             <div className="space-y-4">
               <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">

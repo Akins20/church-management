@@ -233,7 +233,7 @@ export default function MinistryDirectory() {
       <div className="flex-1 flex flex-col lg:flex-row min-h-0 p-4 gap-4">
         {/* Left Panel - Ministries List */}
         <div className="w-full lg:w-80 flex flex-col shrink-0">
-          <div className="bg-white rounded-2xl border border-gray-200 flex-1 flex flex-col">
+          <div className="bg-white rounded-xl border border-gray-200 flex-1 flex flex-col">
             {/* Search */}
             <div className="p-4 border-b border-gray-200 shrink-0">
               <div className="relative">
@@ -324,7 +324,7 @@ export default function MinistryDirectory() {
 
         {/* Right Panel - Ministry Details & Members */}
         <div className="flex-1 flex flex-col min-w-0">
-          <div className="bg-white rounded-2xl border border-gray-200 flex-1 flex flex-col">
+          <div className="bg-white rounded-xl border border-gray-200 flex-1 flex flex-col">
             {selectedMinistry ? (
               <>
                 {/* Ministry Header */}
@@ -423,7 +423,7 @@ export default function MinistryDirectory() {
                 </div>
               </>
             ) : (
-              <div className="flex-1 flex flex-col items-center justify-center text-center p-6">
+              <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                   <UserGroupIcon className="w-8 h-8 text-gray-400" />
                 </div>
@@ -438,7 +438,7 @@ export default function MinistryDirectory() {
       {/* Add Member Modal */}
       {showAddMemberModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-hidden flex flex-col">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-hidden flex flex-col">
             <div className="flex items-center justify-between p-5 border-b border-gray-200 shrink-0">
               <h2 className="text-lg font-semibold text-gray-900">Add Member to {selectedMinistry?.name}</h2>
               <button onClick={() => { setShowAddMemberModal(false); setMemberSearch(''); setSelectedMember(null); }} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
@@ -507,7 +507,7 @@ export default function MinistryDirectory() {
       {/* Create/Edit Ministry Modal - Simplified */}
       {(showCreateModal || showEditModal) && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
             <div className="flex items-center justify-between p-5 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900">{showEditModal ? 'Edit Ministry' : 'Create Ministry'}</h2>
               <button onClick={() => { setShowCreateModal(false); setShowEditModal(false); resetForm(); }} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
@@ -567,7 +567,7 @@ export default function MinistryDirectory() {
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full">
+          <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full">
             <div className="p-5">
               <h2 className="text-lg font-semibold text-gray-900 mb-2">Delete Ministry</h2>
               <p className="text-gray-600">Are you sure you want to delete <strong>{selectedMinistry?.name}</strong>? This cannot be undone.</p>

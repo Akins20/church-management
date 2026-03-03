@@ -149,7 +149,7 @@ export default function SystemSettings() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -179,7 +179,7 @@ export default function SystemSettings() {
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6">
+      <div className="flex flex-col lg:flex-row gap-3">
         {/* Sidebar */}
         <div className="lg:w-64 flex-shrink-0">
           <Card>
@@ -210,7 +210,7 @@ export default function SystemSettings() {
           {/* General Settings */}
           {activeTab === 'general' && (
             <Card title="General Settings">
-              <div className="space-y-6">
+              <div className="space-y-3">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
                     label="Church Name"
@@ -329,7 +329,7 @@ export default function SystemSettings() {
           {/* Email Settings */}
           {activeTab === 'email' && (
             <Card title="Email Configuration">
-              <div className="space-y-6">
+              <div className="space-y-3">
                 <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <p className="text-sm text-yellow-800">
                     Configure your SMTP settings to enable email functionality. Contact your email
@@ -417,7 +417,7 @@ export default function SystemSettings() {
           {/* Notification Settings */}
           {activeTab === 'notifications' && (
             <Card title="Notification Settings">
-              <div className="space-y-6">
+              <div className="space-y-3">
                 <div>
                   <h3 className="text-sm font-medium text-gray-900 mb-4">Notification Channels</h3>
                   <div className="space-y-4">
@@ -494,7 +494,7 @@ export default function SystemSettings() {
           {/* Security Settings */}
           {activeTab === 'security' && (
             <Card title="Security Settings">
-              <div className="space-y-6">
+              <div className="space-y-3">
                 <div>
                   <h3 className="text-sm font-medium text-gray-900 mb-4">Password Requirements</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -609,7 +609,7 @@ export default function SystemSettings() {
           {/* Appearance Settings */}
           {activeTab === 'appearance' && (
             <Card title="Appearance Settings">
-              <div className="space-y-6">
+              <div className="space-y-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Primary Color
@@ -644,7 +644,7 @@ export default function SystemSettings() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Logo
                     </label>
-                    <div className="flex items-center justify-center p-6 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                    <div className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
                       <div className="text-center">
                         <PaintBrushIcon className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                         <p className="text-sm text-gray-600">Click to upload logo</p>
@@ -656,7 +656,7 @@ export default function SystemSettings() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Favicon
                     </label>
-                    <div className="flex items-center justify-center p-6 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                    <div className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
                       <div className="text-center">
                         <GlobeAltIcon className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                         <p className="text-sm text-gray-600">Click to upload favicon</p>

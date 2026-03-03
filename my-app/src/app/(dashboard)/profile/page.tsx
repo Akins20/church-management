@@ -101,7 +101,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-3">
       {/* Success Message */}
       {successMessage && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center">
@@ -226,7 +226,7 @@ export default function ProfilePage() {
       {/* Profile Information */}
       {!isEditing && (
         <Card title="Profile Information">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium text-gray-500">First Name</label>
               <p className="mt-1 text-gray-900">{user?.firstName}</p>

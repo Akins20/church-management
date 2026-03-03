@@ -130,7 +130,7 @@ export default function NotepadHistoryPage() {
   };
 
   return (
-    <div className="min-h-full flex flex-col bg-gray-50">
+    <div className="h-full flex flex-col bg-gray-50 overflow-hidden">
       {/* Notification */}
       {notification && (
         <div
@@ -184,7 +184,7 @@ export default function NotepadHistoryPage() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex flex-col min-h-0 p-4 md:p-6 overflow-y-auto">
+      <div className="flex-1 flex flex-col min-h-0 p-4 md:p-4">
         {isLoading ? (
           <div className="flex-1 flex items-center justify-center">
             <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
@@ -200,11 +200,12 @@ export default function NotepadHistoryPage() {
             </p>
           </div>
         ) : (
+          <div className="flex-1 min-h-0 overflow-y-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
             {notes.map((note) => (
               <div
                 key={note._id}
-                className="bg-white border border-gray-200 rounded-2xl p-4 hover:shadow-lg transition-shadow"
+                className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-shadow"
               >
                 <div className="flex items-start justify-between mb-2">
                   <h3 className="font-semibold text-gray-900 text-sm truncate flex-1 pr-2">
@@ -244,6 +245,7 @@ export default function NotepadHistoryPage() {
                 </div>
               </div>
             ))}
+          </div>
           </div>
         )}
 
@@ -304,8 +306,8 @@ export default function NotepadHistoryPage() {
 
       {/* View/Edit Modal */}
       {selectedNote && (
-        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 sm:p-6">
-          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] sm:max-h-[80vh] flex flex-col">
+        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 sm:p-4">
+          <div className="bg-white rounded-t-2xl sm:rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] sm:max-h-[80vh] flex flex-col">
             {/* Modal Header */}
             <div className="flex items-center justify-between p-5 border-b border-gray-200 shrink-0">
               <h2 className="text-lg font-semibold text-gray-900">
