@@ -345,7 +345,7 @@ export default function MessageEmailPage() {
                       <div className="flex flex-wrap gap-1.5">
                         {selectedMembers.map((member) => (
                           <span
-                            key={member.id || member._id}
+                            key={getUserId(member)}
                             className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-lg"
                           >
                             {member.firstName} {member.lastName}
@@ -367,7 +367,7 @@ export default function MessageEmailPage() {
                         const isSelected = selectedMembers.some(m => getUserId(m) === getUserId(user));
                         return (
                           <button
-                            key={user.id || user._id}
+                            key={getUserId(user)}
                             type="button"
                             onClick={() => toggleMember(user)}
                             className={`w-full flex items-center p-2 text-left transition-colors ${
