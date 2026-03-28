@@ -183,11 +183,14 @@ export default function MessageEmailPage() {
     }
   };
 
+  const getUserId = (u: any) => u._id || u.id;
+
   const toggleMember = (user: any) => {
+    const userId = getUserId(user);
     setSelectedMembers(prev => {
-      const exists = prev.find(m => m.id === user.id || m._id === user._id);
+      const exists = prev.find(m => getUserId(m) === userId);
       if (exists) {
-        return prev.filter(m => m.id !== user.id && m._id !== user._id);
+        return prev.filter(m => getUserId(m) !== userId);
       }
       return [...prev, user];
     });
@@ -361,7 +364,7 @@ export default function MessageEmailPage() {
                     {/* Member List */}
                     <div className="max-h-32 overflow-y-auto border border-gray-200 rounded-xl divide-y divide-gray-100">
                       {filteredUsers.slice(0, 10).map((user: any) => {
-                        const isSelected = selectedMembers.some(m => m.id === user.id || m._id === user._id);
+                        const isSelected = selectedMembers.some(m => getUserId(m) === getUserId(user));
                         return (
                           <button
                             key={user.id || user._id}
