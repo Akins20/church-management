@@ -183,7 +183,7 @@ export default function MessageEmailPage() {
     }
   };
 
-  const getUserId = (u: any) => u._id || u.id;
+  const getUserId = (u: any) => String(u._id || u.id);
 
   const toggleMember = (user: any) => {
     const userId = getUserId(user);
