@@ -15,7 +15,7 @@ export const emailService = {
   },
 
   // Send broadcast email
-  sendBroadcast: async (data: { recipients: string[]; subject: string; body: string }): Promise<void> => {
+  sendBroadcast: async (data: { recipients: { email: string; name?: string }[]; subject: string; body: string }): Promise<void> => {
     await apiClient.post('/emails/broadcast', data);
   },
 
