@@ -86,7 +86,7 @@ export default function EmailCenter() {
 
   const handleBroadcast = (e: React.FormEvent) => {
     e.preventDefault();
-    const recipients = users?.data?.map((u) => u.email) || [];
+    const recipients = users?.data?.map((u) => ({ email: u.email, name: `${u.firstName || ''} ${u.lastName || ''}`.trim() })) || [];
     broadcastMutation.mutate({
       recipients,
       subject: broadcastData.subject,
