@@ -62,7 +62,7 @@ export default function MessageEmailPage() {
   });
 
   const sendBroadcastMutation = useMutation({
-    mutationFn: async (data: { recipients: string[]; subject: string; body: string }) => {
+    mutationFn: async (data: { recipients: { email: string; name?: string }[]; subject: string; body: string }) => {
       return emailService.sendBroadcast(data);
     },
     onSuccess: () => {
@@ -83,29 +83,32 @@ export default function MessageEmailPage() {
 
   const ministriesList = Array.isArray(ministries?.data) ? ministries.data : ((ministries?.data as any)?.ministries || (ministries as any)?.ministries || []);
 
-  const getRecipientsForMinistry = (ministryId: string): string[] => {
+  const getRecipientsForMinistry = (ministryId: string): { email: string; name?: string }[] => {
     const ministry = ministriesList.find((m: any) => (m._id || m.id) === ministryId);
     if (!ministry?.members) return [];
 
     // If members are populated with user objects
     if (ministry.members.length > 0 && typeof ministry.members[0] === 'object') {
-      return ministry.members.map((m: any) => m.email).filter(Boolean);
+      return ministry.members
+        .filter((m: any) => m.email)
+        .map((m: any) => ({ email: m.email, name: `${m.firstName || ''} ${m.lastName || ''}`.trim() }));
     }
 
     // If members are just IDs, we need to find them in users
     const memberIds = ministry.members;
     return usersList
-      .filter((u: any) => memberIds.includes(u._id || u.id))
-      .map((u: any) => u.email)
-      .filter(Boolean);
+      .filter((u: any) => memberIds.includes(u._id || u.id) && u.email)
+      .map((u: any) => ({ email: u.email, name: `${u.firstName || ''} ${u.lastName || ''}`.trim() }));
   };
 
-  const getRecipients = (): string[] => {
+  const getRecipients = (): { email: string; name?: string }[] => {
     if (recipientType === 'ministry' && formData.selectedMinistry) {
       return getRecipientsForMinistry(formData.selectedMinistry);
     }
     if (recipientType === 'individual' && selectedMembers.length > 0) {
-      return selectedMembers.map(m => m.email).filter(Boolean);
+      return selectedMembers
+        .filter((m: any) => m.email)
+        .map((m: any) => ({ email: m.email, name: `${m.firstName || ''} ${m.lastName || ''}`.trim() }));
     }
     return [];
   };
