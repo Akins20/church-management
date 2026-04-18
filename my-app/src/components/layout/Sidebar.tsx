@@ -75,7 +75,7 @@ const navigationItems: NavItem[] = [
     roles: [UserRole.NEWCOMER, UserRole.MEMBER, UserRole.STAFF, UserRole.ADMIN],
     children: [
       { name: 'Notes', href: '/notepad/notes' },
-      { name: 'History', href: '/notepad/history' },
+      { name: 'Recently Deleted', href: '/notepad/notes?view=deleted' },
     ],
   },
   {
