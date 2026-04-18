@@ -1,7 +1,10 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
 
-// Get API base URL from environment variable
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '/api/v1';
+// Get API base URL from environment variable; fall back to the deployed VPS
+// so a forgotten env var doesn't quietly break prod builds.
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  'https://api.churchmanage.mountzionchapel.ca/api/v1';
 
 // Token storage keys
 const ACCESS_TOKEN_KEY = 'accessToken';
