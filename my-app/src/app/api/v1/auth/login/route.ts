@@ -1,3 +1,5 @@
+export const runtime = 'nodejs';  // add this line
+
 import { NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 

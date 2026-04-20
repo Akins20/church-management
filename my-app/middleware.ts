@@ -62,16 +62,6 @@ export function middleware(request: NextRequest) {
   // Try to decode the token to get user role
   // Note: Full JWT verification should be done server-side, this is just for routing
   try {
-    // Replace URL-safe chars and add padding
-    const parts = token.split('.');
-    if (parts.length !== 3) {
-      const loginUrl = new URL('/login', request.url);
-      return NextResponse.redirect(loginUrl);
-    }
-
-    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-    const padded = base64.padEnd(base64.length + (4 - base64.length % 4) % 4, '=');
-
     // Decode without verification for routing purposes
     // The actual verification happens in the API/server components
     const payload = JSON.parse(atob(token.split('.')[1]));
@@ -111,6 +101,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public folder
      */
-    '/((?!_next/static|_next/image|favicon.ico|public/).*)',
+    '/((?!_next/static|_next/image|favicon.ico|public/|api/).*)', 
   ],
 };
