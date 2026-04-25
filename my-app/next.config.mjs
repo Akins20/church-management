@@ -1,6 +1,4 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {
-    serverExternalPackages: ['jsonwebtoken'],
-};
+const nextConfig = {};
 
 export default nextConfig;
