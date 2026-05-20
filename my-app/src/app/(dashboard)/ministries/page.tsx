@@ -20,6 +20,8 @@ import {
 } from '@heroicons/react/24/outline';
 
 const ITEMS_PER_PAGE = 6;
+const ALL_MINISTRY_ID = '__all_members__';
+const getEntityId = (e: any): string => e?._id || e?.id || '';
 
 export default function MinistryDirectory() {
   const queryClient = useQueryClient();
@@ -46,21 +48,31 @@ export default function MinistryDirectory() {
     queryFn: () => ministryService.getMinistries(1, 100),
   });
 
+  const isAllMembersView = getEntityId(selectedMinistry) === ALL_MINISTRY_ID;
+
   // Fetch ministry details with members
   const { data: ministryDetails, isLoading: loadingDetails } = useQuery({
-    queryKey: ['ministryDetails', selectedMinistry?._id || selectedMinistry?.id],
-    queryFn: () => ministryService.getMinistryById(selectedMinistry?._id || selectedMinistry?.id),
-    enabled: !!(selectedMinistry?._id || selectedMinistry?.id),
+    queryKey: ['ministryDetails', getEntityId(selectedMinistry)],
+    queryFn: () => ministryService.getMinistryById(getEntityId(selectedMinistry)),
+    enabled: !!getEntityId(selectedMinistry) && !isAllMembersView,
   });
 
-  // Fetch all users for add member modal
+  // Fetch all users (powers both the "All Members" view AND the add-member modal)
   const { data: allUsers, isLoading: loadingUsers } = useQuery({
     queryKey: ['users'],
     queryFn: () => userService.getUsers(undefined, 1, 200),
-    enabled: showAddMemberModal,
+    enabled: showAddMemberModal || isAllMembersView,
   });
 
-  const ministriesList = ministries?.data || [];
+  const realMinistries = ministries?.data || [];
+  const allMembersEntry = {
+    _id: ALL_MINISTRY_ID,
+    name: 'All Members',
+    description: 'Everyone in the church directory',
+    isVirtual: true,
+  } as any;
+  // Pin "All Members" first; rest below
+  const ministriesList = [allMembersEntry, ...realMinistries];
 
   // Filter ministries by search
   const filteredMinistries = ministriesList.filter((m: any) => {
@@ -82,8 +94,11 @@ export default function MinistryDirectory() {
       (user.email || '').toLowerCase().includes(searchLower);
   });
 
-  // Get members list from ministry details
+  // Get members list from ministry details (or all users when in "All Members" view)
   const getMembersList = () => {
+    if (isAllMembersView) {
+      return allUsersList;
+    }
     // Try ministryDetails first (from API)
     if (ministryDetails?.members && Array.isArray(ministryDetails.members)) {
       return ministryDetails.members;
@@ -199,14 +214,14 @@ export default function MinistryDirectory() {
 
   return (
     <div className="min-h-full flex flex-col bg-gray-50">
-      {/* Notification */}
+      {/* Notification (rendered above modals so success always shows) */}
       {notification && (
-        <div className={`px-4 py-3 flex items-center justify-between shrink-0 ${notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'}`}>
+        <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-[60] max-w-md w-[calc(100%-2rem)] px-4 py-3 rounded-xl shadow-lg flex items-center justify-between ${notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'}`}>
           <div className="flex items-center space-x-2 text-white">
             {notification.type === 'success' ? <CheckCircleIcon className="w-5 h-5" /> : <XCircleIcon className="w-5 h-5" />}
-            <span className="font-medium">{notification.message}</span>
+            <span className="font-medium text-sm">{notification.message}</span>
           </div>
-          <button onClick={() => setNotification(null)} className="text-white/80 hover:text-white">
+          <button onClick={() => setNotification(null)} className="text-white/80 hover:text-white ml-3">
             <XMarkIcon className="w-5 h-5" />
           </button>
         </div>
@@ -265,8 +280,12 @@ export default function MinistryDirectory() {
               ) : (
                 <div className="space-y-2">
                   {paginatedMinistries.map((ministry: any) => {
-                    const ministryId = ministry._id || ministry.id;
-                    const isSelected = (selectedMinistry?._id || selectedMinistry?.id) === ministryId;
+                    const ministryId = getEntityId(ministry);
+                    const isSelected = getEntityId(selectedMinistry) === ministryId;
+                    const isVirtual = ministry.isVirtual;
+                    const count = isVirtual
+                      ? (allUsersList.length || '·')
+                      : (ministry.members?.length || 0);
                     return (
                       <button
                         key={ministryId}
@@ -274,18 +293,22 @@ export default function MinistryDirectory() {
                         className={`w-full p-3 rounded-xl text-left transition-all ${
                           isSelected
                             ? 'bg-blue-50 border-2 border-blue-500'
+                            : isVirtual
+                            ? 'bg-amber-50 border border-amber-200 hover:bg-amber-100'
                             : 'bg-gray-50 border border-transparent hover:bg-gray-100'
                         }`}
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-gray-900 text-sm truncate">{ministry.name}</p>
+                            <p className="font-medium text-gray-900 text-sm truncate">
+                              {isVirtual && '★ '}{ministry.name}
+                            </p>
                             <p className="text-xs text-gray-500 truncate mt-0.5">{ministry.description}</p>
                           </div>
                           <span className={`px-2 py-0.5 text-[10px] font-medium rounded-full shrink-0 ml-2 ${
-                            isSelected ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-600'
+                            isSelected ? 'bg-blue-500 text-white' : isVirtual ? 'bg-amber-200 text-amber-800' : 'bg-gray-200 text-gray-600'
                           }`}>
-                            {ministry.members?.length || 0}
+                            {count}
                           </span>
                         </div>
                       </button>
@@ -335,7 +358,7 @@ export default function MinistryDirectory() {
                       <p className="text-gray-500 text-sm mt-1">{selectedMinistry.description}</p>
                     </div>
                     <div className="flex items-center space-x-2 shrink-0">
-                      {isAdmin && (
+                      {isAdmin && !isAllMembersView && (
                         <>
                           <button
                             onClick={() => {
@@ -357,13 +380,15 @@ export default function MinistryDirectory() {
                           </button>
                         </>
                       )}
-                      <button
-                        onClick={() => setShowAddMemberModal(true)}
-                        className="flex items-center px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium rounded-xl transition-colors"
-                      >
-                        <UserPlusIcon className="w-3.5 h-3.5 mr-1" />
-                        Add Member
-                      </button>
+                      {!isAllMembersView && (
+                        <button
+                          onClick={() => setShowAddMemberModal(true)}
+                          className="flex items-center px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium rounded-xl transition-colors"
+                        >
+                          <UserPlusIcon className="w-3.5 h-3.5 mr-1" />
+                          Add Member
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -390,7 +415,7 @@ export default function MinistryDirectory() {
                   </div>
 
                   <div className="flex-1 overflow-y-auto">
-                    {loadingDetails ? (
+                    {(isAllMembersView ? loadingUsers : loadingDetails) ? (
                       <div className="flex items-center justify-center py-8">
                         <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
                       </div>
@@ -462,22 +487,26 @@ export default function MinistryDirectory() {
                     <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" />
                   </div>
                 ) : filteredUsers.length > 0 ? (
-                  filteredUsers.slice(0, 10).map((user: any) => (
-                    <button
-                      key={user._id || user.id}
-                      onClick={() => setSelectedMember(user)}
-                      className={`w-full flex items-center p-3 text-left transition-colors ${selectedMember?._id === user._id || selectedMember?.id === user.id ? 'bg-blue-50' : 'hover:bg-gray-50'}`}
-                    >
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xs font-medium mr-3">
-                        {user.firstName?.[0] || '?'}{user.lastName?.[0] || ''}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">{user.firstName} {user.lastName}</p>
-                        {user.email && <p className="text-xs text-gray-500 truncate">{user.email}</p>}
-                      </div>
-                      {(selectedMember?._id === user._id || selectedMember?.id === user.id) && <CheckCircleIcon className="w-5 h-5 text-blue-500 shrink-0" />}
-                    </button>
-                  ))
+                  filteredUsers.slice(0, 10).map((user: any) => {
+                    const userId = getEntityId(user);
+                    const isSel = !!userId && getEntityId(selectedMember) === userId;
+                    return (
+                      <button
+                        key={userId}
+                        onClick={() => setSelectedMember(user)}
+                        className={`w-full flex items-center p-3 text-left transition-colors ${isSel ? 'bg-blue-50 ring-2 ring-blue-500 ring-inset' : 'hover:bg-gray-50'}`}
+                      >
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium mr-3 ${isSel ? 'bg-blue-500 text-white' : 'bg-blue-100 text-blue-600'}`}>
+                          {user.firstName?.[0] || '?'}{user.lastName?.[0] || ''}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-sm font-medium ${isSel ? 'text-blue-700' : 'text-gray-900'}`}>{user.firstName} {user.lastName}</p>
+                          {user.email && <p className="text-xs text-gray-500 truncate">{user.email}</p>}
+                        </div>
+                        {isSel && <CheckCircleIcon className="w-5 h-5 text-blue-500 shrink-0" />}
+                      </button>
+                    );
+                  })
                 ) : (
                   <div className="p-4 text-center text-gray-500 text-sm">No members found</div>
                 )}
@@ -487,14 +516,13 @@ export default function MinistryDirectory() {
               <button onClick={() => { setShowAddMemberModal(false); setMemberSearch(''); setSelectedMember(null); }} className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium">Cancel</button>
               <button
                 onClick={() => {
-                  if (selectedMinistry && selectedMember) {
-                    addMemberMutation.mutate({
-                      ministryId: selectedMinistry._id || selectedMinistry.id,
-                      userId: selectedMember._id || selectedMember.id,
-                    });
+                  const ministryId = getEntityId(selectedMinistry);
+                  const userId = getEntityId(selectedMember);
+                  if (ministryId && userId) {
+                    addMemberMutation.mutate({ ministryId, userId });
                   }
                 }}
-                disabled={!selectedMember || addMemberMutation.isPending}
+                disabled={!getEntityId(selectedMember) || addMemberMutation.isPending}
                 className="flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium disabled:opacity-50"
               >
                 {addMemberMutation.isPending ? 'Adding...' : 'Add Member'}

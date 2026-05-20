@@ -27,7 +27,7 @@ interface FormData {
   lastName: string;
   email: string;
   phone: string;
-  ministryId: string;
+  ministryIds: string[];
 }
 
 const ITEMS_PER_PAGE = 6;
@@ -42,7 +42,7 @@ export default function PeopleCheckInPage() {
     lastName: '',
     email: '',
     phone: '',
-    ministryId: '',
+    ministryIds: [],
   });
   const [lookupResult, setLookupResult] = useState<{
     exists: boolean;
@@ -112,7 +112,7 @@ export default function PeopleCheckInPage() {
       lastName: string;
       email?: string;
       phone?: string;
-      ministryId?: string;
+      ministryIds?: string[];
     }) => attendanceService.checkIn(data),
     onSuccess: (data) => {
       setNotification({
@@ -157,7 +157,7 @@ export default function PeopleCheckInPage() {
   }, [notification]);
 
   const resetForm = () => {
-    setFormData({ firstName: '', lastName: '', email: '', phone: '', ministryId: '' });
+    setFormData({ firstName: '', lastName: '', email: '', phone: '', ministryIds: [] });
     setLookupResult(null);
     setMode('search');
     setErrors({});
@@ -173,6 +173,15 @@ export default function PeopleCheckInPage() {
       setMode('search');
       setLookupResult(null);
     }
+  };
+
+  const toggleMinistry = (id: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      ministryIds: prev.ministryIds.includes(id)
+        ? prev.ministryIds.filter((m) => m !== id)
+        : [...prev.ministryIds, id],
+    }));
   };
 
   const validateForm = (): boolean => {
@@ -205,7 +214,7 @@ export default function PeopleCheckInPage() {
       lastName: formData.lastName.trim(),
       email: formData.email.trim() || undefined,
       phone: formData.phone.trim() || undefined,
-      ministryId: formData.ministryId || undefined,
+      ministryIds: formData.ministryIds.length > 0 ? formData.ministryIds : undefined,
     });
   };
 
@@ -414,31 +423,44 @@ export default function PeopleCheckInPage() {
                     </div>
                   )}
 
-                  {/* Ministry Field - Always visible */}
+                  {/* Ministry Field - multi-select chips */}
                   <div>
-                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
-                      Ministry <span className="text-gray-400 text-[10px] md:text-xs">(optional)</span>
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1.5 flex items-center justify-between">
+                      <span>
+                        Ministries <span className="text-gray-400 text-[10px] md:text-xs">(select one or more, optional)</span>
+                      </span>
+                      {formData.ministryIds.length > 0 && (
+                        <span className="text-[10px] md:text-xs text-blue-600 font-semibold">
+                          {formData.ministryIds.length} selected
+                        </span>
+                      )}
                     </label>
-                    <div className="relative">
-                      <UserGroupIcon className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400" />
-                      <select
-                        name="ministryId"
-                        value={formData.ministryId}
-                        onChange={handleChange}
-                        className="w-full pl-8 md:pl-9 pr-6 md:pr-8 py-2 md:py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white appearance-none text-xs md:text-sm text-gray-900"
-                      >
-                        <option value="">Select a ministry</option>
-                        {ministriesList.map((ministry: any) => (
-                          <option key={ministry._id || ministry.id} value={ministry._id || ministry.id}>
-                            {ministry.name}
-                          </option>
-                        ))}
-                      </select>
-                      <div className="absolute right-2.5 md:right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                        <svg className="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </div>
+                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-2 md:p-2.5 max-h-44 overflow-y-auto">
+                      {ministriesList.length === 0 ? (
+                        <p className="text-[11px] md:text-xs text-gray-400 px-1.5 py-1">No ministries available</p>
+                      ) : (
+                        <div className="flex flex-wrap gap-1.5 md:gap-2">
+                          {ministriesList.map((ministry: any) => {
+                            const id = ministry._id || ministry.id;
+                            const selected = formData.ministryIds.includes(id);
+                            return (
+                              <button
+                                key={id}
+                                type="button"
+                                onClick={() => toggleMinistry(id)}
+                                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] md:text-xs font-medium border transition-colors ${
+                                  selected
+                                    ? 'bg-blue-500 text-white border-blue-500 hover:bg-blue-600'
+                                    : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:text-blue-600'
+                                }`}
+                              >
+                                {selected && <CheckCircleSolid className="w-3 h-3 md:w-3.5 md:h-3.5" />}
+                                <span>{ministry.name}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   </div>
 

@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAppSelector } from '@/store/hooks';
 import { selectUser, selectUserRole } from '@/store/slices/authSlice';
-import { attendanceService, serviceService, noteService, userService, ministryService } from '@/services';
+import { attendanceService, serviceService, noteService, ministryService } from '@/services';
 import {
   UserGroupIcon,
   ChartBarIcon,
@@ -53,13 +53,6 @@ export default function MemberDashboard() {
     enabled: !!userId && !isStaffOrAdmin,
   });
 
-  // Fetch total members count (staff/admin only - endpoint requires elevated role)
-  const { data: usersData } = useQuery({
-    queryKey: ['usersStats'],
-    queryFn: () => userService.getUsers({}, 1, 1),
-    enabled: isStaffOrAdmin,
-  });
-
   // Fetch ministries count
   const { data: ministriesData } = useQuery({
     queryKey: ['ministriesStats'],
@@ -79,15 +72,27 @@ export default function MemberDashboard() {
 
   const todayCount = todayAttendance?.length || 0;
   const notesList = recentNotes?.notes || [];
-  const totalMembers = usersData?.total || (usersData as any)?.data?.total || 0;
   const totalMinistries = ministriesData?.total || ministriesData?.data?.length || 0;
   const avgAttendance = attendanceAnalytics?.summary?.avgAttendancePerDay
     ? Math.round(attendanceAnalytics.summary.avgAttendancePerDay)
     : 0;
 
+  // Attendance for the most recent service:
+  // prefer today's count if anyone's checked in; otherwise fall back to the last day with attendance in the trend
+  const trend = attendanceAnalytics?.trendByDate || [];
+  const lastTrendEntry = trend.length > 0 ? trend[trend.length - 1] : null;
+  const lastServiceAttendance = todayCount > 0
+    ? todayCount
+    : (lastTrendEntry?.count || 0);
+  const lastServiceDateLabel = todayCount > 0
+    ? 'today'
+    : (lastTrendEntry?._id
+        ? new Date(lastTrendEntry._id).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        : '—');
+
   const adminStats = [
     { name: "Today's Check-ins", value: todayCount, icon: ClipboardDocumentCheckIcon, color: 'from-blue-500 to-blue-600' },
-    { name: 'Total Members', value: totalMembers, icon: UserGroupIcon, color: 'from-green-500 to-green-600' },
+    { name: `Last Service (${lastServiceDateLabel})`, value: lastServiceAttendance, icon: UserGroupIcon, color: 'from-green-500 to-green-600' },
     { name: 'Avg Attendance', value: avgAttendance, icon: ArrowTrendingUpIcon, color: 'from-purple-500 to-purple-600' },
     { name: 'Active Ministries', value: totalMinistries, icon: BuildingOffice2Icon, color: 'from-orange-500 to-orange-600' },
   ];

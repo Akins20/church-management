@@ -30,6 +30,32 @@ export interface CheckInData {
   email?: string;
   phone?: string;
   ministryId?: string;
+  ministryIds?: string[];
+}
+
+export interface MinistryAttendanceGroup {
+  ministryId: string;
+  name: string;
+  category?: string;
+  count: number;
+  attendees: Array<{
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email?: string;
+    phone?: string;
+  }>;
+}
+
+export interface AttendanceByMinistryResult {
+  period: { startDate: string; endDate: string };
+  totalAttendees: number;
+  totalRecords: number;
+  groups: MinistryAttendanceGroup[];
+  unassigned: {
+    count: number;
+    attendees: MinistryAttendanceGroup['attendees'];
+  };
 }
 
 export interface CheckInResponse {
@@ -173,6 +199,20 @@ export const attendanceService = {
     const response = await apiClient.get('/attendance/analytics', { params });
     const data = extractData<{ analytics: AttendanceAnalytics }>(response);
     return data.analytics;
+  },
+
+  // Get attendance grouped by ministry for a date range
+  getAttendanceByMinistry: async (
+    startDate?: string,
+    endDate?: string,
+    ministryId?: string
+  ): Promise<AttendanceByMinistryResult> => {
+    const params: Record<string, string> = {};
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
+    if (ministryId) params.ministryId = ministryId;
+    const response = await apiClient.get('/attendance/by-ministry', { params });
+    return extractData<AttendanceByMinistryResult>(response);
   },
 
   // Get user attendance stats
