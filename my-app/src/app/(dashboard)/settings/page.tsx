@@ -11,8 +11,6 @@ import {
   ShieldCheckIcon,
   CheckCircleIcon,
   XCircleIcon,
-  EyeIcon,
-  EyeSlashIcon,
 } from '@heroicons/react/24/outline';
 
 type TabType = 'profile' | 'password' | 'security';
@@ -35,17 +33,6 @@ export default function SettingsPage() {
     phone: user?.phone || '',
   });
 
-  // Password form state
-  const [passwordForm, setPasswordForm] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-  });
-  const [showPasswords, setShowPasswords] = useState({
-    current: false,
-    new: false,
-    confirm: false,
-  });
 
   // Update profile mutation
   const updateProfileMutation = useMutation({
@@ -65,17 +52,18 @@ export default function SettingsPage() {
     },
   });
 
-  // Change password mutation
-  const changePasswordMutation = useMutation({
-    mutationFn: (data: { currentPassword: string; newPassword: string }) =>
-      authService.changePassword(data.currentPassword, data.newPassword),
+  // Email-link password reset mutation (replaces in-app password change)
+  const sendResetMutation = useMutation({
+    mutationFn: (email: string) => authService.forgotPassword(email),
     onSuccess: () => {
-      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-      setNotification({ type: 'success', message: 'Password changed successfully' });
-      setTimeout(() => setNotification(null), 3000);
+      setNotification({
+        type: 'success',
+        message: 'Password reset link sent. Check your email (valid for 1 hour).',
+      });
+      setTimeout(() => setNotification(null), 5000);
     },
     onError: () => {
-      setNotification({ type: 'error', message: 'Failed to change password. Check your current password.' });
+      setNotification({ type: 'error', message: 'Failed to send reset email. Please try again.' });
       setTimeout(() => setNotification(null), 3000);
     },
   });
@@ -85,23 +73,6 @@ export default function SettingsPage() {
     updateProfileMutation.mutate(profileForm);
   };
 
-  const handlePasswordSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setNotification({ type: 'error', message: 'New passwords do not match' });
-      setTimeout(() => setNotification(null), 3000);
-      return;
-    }
-    if (passwordForm.newPassword.length < 8) {
-      setNotification({ type: 'error', message: 'Password must be at least 8 characters' });
-      setTimeout(() => setNotification(null), 3000);
-      return;
-    }
-    changePasswordMutation.mutate({
-      currentPassword: passwordForm.currentPassword,
-      newPassword: passwordForm.newPassword,
-    });
-  };
 
   const tabs = [
     { id: 'profile' as TabType, name: 'Profile', icon: UserCircleIcon },
@@ -329,23 +300,6 @@ export default function SettingsPage() {
                       <p className="text-sm text-amber-700 mb-3">
                         If you can&apos;t remember your current password, we can send a reset link to your email.
                       </p>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (user?.email) {
-                            authService.forgotPassword(user.email).then(() => {
-                              setNotification({ type: 'success', message: 'Password reset link sent to your email' });
-                              setTimeout(() => setNotification(null), 5000);
-                            }).catch(() => {
-                              setNotification({ type: 'error', message: 'Failed to send reset email. Please try again.' });
-                              setTimeout(() => setNotification(null), 3000);
-                            });
-                          }
-                        }}
-                        className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded-xl transition-colors"
-                      >
-                        Send Reset Link
-                      </button>
                     </div>
                   </div>
                 </div>
