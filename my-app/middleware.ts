@@ -38,7 +38,7 @@ const routeRules: Record<string, string[]> = {
 };
 
 // Public routes that don't require authentication
-const publicRoutes = ['/login', '/register', '/reset-password', '/api'];
+const publicRoutes = ['/login', '/reset-password', '/api'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

@@ -230,17 +230,6 @@ export default function LoginPage() {
                 )}
               </button>
             </form>
-
-            {/* Sign Up Link */}
-            <div className="mt-6 text-center">
-              <span className="text-gray-500 text-sm">New to our church? </span>
-              <Link
-                href="/register"
-                className="text-blue-600 hover:text-blue-700 font-medium text-sm"
-              >
-                Create an Account
-              </Link>
-            </div>
           </div>
 
           {/* Footer */}
