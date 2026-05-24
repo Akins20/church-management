@@ -310,7 +310,9 @@ export default function PeopleCheckInPage() {
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">Check-in</h1>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Register attendance for members</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                    Type a name to find a member and check them in. If they&apos;re new, fill in their details to register and check in at once. Pick their group so attendance reports stay accurate.
+                  </p>
                 </div>
                 <button
                   onClick={() => setShowTodayPanel(true)}
@@ -472,6 +474,7 @@ export default function PeopleCheckInPage() {
                           <button
                             key={opt.key}
                             type="button"
+                            title={`Mark this attendee as ${opt.label} — feeds the attendance-by-group report`}
                             onClick={() =>
                               setFormData((prev) => ({
                                 ...prev,

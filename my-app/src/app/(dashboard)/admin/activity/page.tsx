@@ -132,13 +132,16 @@ export default function ActivityLogPage() {
       <div className="max-w-5xl mx-auto p-4 md:p-6 space-y-4">
         {/* Title */}
         <div className="flex items-start justify-between gap-3">
-          <div>
+          <div className="min-w-0">
             <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">Activity Log</h1>
-            <p className="text-gray-500 dark:text-gray-400 text-sm mt-0.5">{total} recorded {total === 1 ? 'event' : 'events'}</p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-0.5">
+              An audit trail of key actions (sign-ins, check-ins, emails, role changes). {total} {total === 1 ? 'event' : 'events'}; entries are kept for 12 months. Use the filters to narrow it down, then export or schedule a digest.
+            </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => setShowDigest((s) => !s)}
+              title="Set up automatic activity-digest emails (weekly, monthly, or a custom schedule), or send one now"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-white/[0.06] ring-1 ring-black/5 dark:ring-white/[0.08] text-gray-700 dark:text-gray-200 text-sm font-medium hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
             >
               <EnvelopeIcon className="w-4 h-4" />
@@ -146,6 +149,7 @@ export default function ActivityLogPage() {
             </button>
             <button
               onClick={() => activityService.exportCsv(filters)}
+              title="Download the currently filtered activity as a CSV file"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors"
             >
               <ArrowDownTrayIcon className="w-4 h-4" />
@@ -161,6 +165,9 @@ export default function ActivityLogPage() {
               <h2 className="text-base font-semibold text-gray-900 dark:text-white">Email digest</h2>
               {digestMsg && <span className="text-xs text-emerald-600 dark:text-emerald-400">{digestMsg}</span>}
             </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 -mt-1">
+              Automatically email a summary of activity on a schedule, with the full log attached as a CSV. Leave recipients blank to send to the admin email. &quot;Send now&quot; emails the last period immediately.
+            </p>
             <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
               <input
                 type="checkbox"
@@ -208,6 +215,7 @@ export default function ActivityLogPage() {
               <button
                 onClick={() => saveDigest.mutate()}
                 disabled={saveDigest.isPending}
+                title="Save the schedule and recipients (also applies the cron timing)"
                 className="px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
               >
                 {saveDigest.isPending ? 'Saving…' : 'Save settings'}
@@ -215,6 +223,7 @@ export default function ActivityLogPage() {
               <button
                 onClick={() => sendNow.mutate()}
                 disabled={sendNow.isPending}
+                title="Send a digest right now to the recipients above"
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white dark:bg-white/[0.06] ring-1 ring-black/5 dark:ring-white/[0.08] text-gray-700 dark:text-gray-200 text-sm font-medium hover:bg-gray-50 dark:hover:bg-white/10 disabled:opacity-50"
               >
                 <PaperAirplaneIcon className="w-4 h-4" />

@@ -279,7 +279,9 @@ export default function MessageEmailPage() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-3">
           <div>
             <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">Compose Email</h1>
-            <p className="text-gray-500 text-xs md:text-sm mt-0.5 hidden sm:block">Send emails to members and ministries</p>
+            <p className="text-gray-500 dark:text-gray-400 text-xs md:text-sm mt-0.5 hidden sm:block">
+              Pick recipients (a whole ministry or selected individuals), write your message, optionally attach files, then Send. Sent emails appear under Message &gt; History.
+            </p>
           </div>
           <div className="hidden sm:flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
             {stats.map((stat) => {
@@ -489,6 +491,7 @@ export default function MessageEmailPage() {
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
+                    title="Attach images, PDFs, Word/Excel/PowerPoint or text files — up to 4MB each, 6MB total"
                     className="flex items-center px-3 py-2 text-sm border border-dashed border-gray-300 dark:border-white/15 rounded-xl text-gray-600 dark:text-gray-300 hover:border-blue-400 hover:text-blue-600 transition-colors"
                   >
                     <PaperClipIcon className="h-4 w-4 mr-1.5" />

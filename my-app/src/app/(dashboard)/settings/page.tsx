@@ -323,9 +323,9 @@ export default function SettingsPage() {
                         <div>
                           <h3 className="font-medium text-gray-900">Two-Factor Authentication</h3>
                           <p className="text-sm text-gray-500 mt-1">
-                            Require an emailed code at sign-in.{' '}
+                            Adds a second step at sign-in: after your password, we email a 6-digit code (valid for 10 minutes) that you enter to finish logging in. Protects your account if your password is ever leaked.{' '}
                             <span className={twoFaEnabled ? 'text-green-600 font-medium' : 'text-gray-500'}>
-                              {twoFaEnabled ? 'Enabled' : 'Disabled'}
+                              Currently {twoFaEnabled ? 'enabled' : 'disabled'}.
                             </span>
                           </p>
                         </div>
@@ -333,6 +333,7 @@ export default function SettingsPage() {
                           <button
                             onClick={() => disable2FA.mutate()}
                             disabled={disable2FA.isPending}
+                            title="Turn off two-factor; you'll sign in with just your password"
                             className="px-4 py-2 rounded-xl bg-red-50 text-red-600 text-sm font-medium hover:bg-red-100 disabled:opacity-50 shrink-0"
                           >
                             {disable2FA.isPending ? 'Disabling…' : 'Disable'}
@@ -341,6 +342,7 @@ export default function SettingsPage() {
                           <button
                             onClick={() => requestEnable2FA.mutate()}
                             disabled={requestEnable2FA.isPending}
+                            title="We'll email you a code to confirm before turning this on"
                             className="px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50 shrink-0"
                           >
                             {requestEnable2FA.isPending ? 'Sending…' : 'Enable'}
@@ -349,7 +351,11 @@ export default function SettingsPage() {
                       </div>
 
                       {!twoFaEnabled && twoFaStep === 'confirming' && (
-                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                        <div className="mt-3 space-y-2">
+                          <p className="text-xs text-gray-500">
+                            Enter the 6-digit code we just emailed to <strong>{user?.email}</strong> to finish enabling.
+                          </p>
+                          <div className="flex flex-wrap items-center gap-2">
                           <input
                             type="text"
                             inputMode="numeric"
@@ -372,6 +378,7 @@ export default function SettingsPage() {
                           >
                             Cancel
                           </button>
+                          </div>
                         </div>
                       )}
                     </div>
