@@ -41,9 +41,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
             <Bars3Icon className="w-5 h-5 text-gray-600 dark:text-gray-300" />
           </button>
           <div className="flex items-center space-x-2">
-            <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-blue-600 rounded-[8px] flex items-center justify-center">
-              <span className="text-white font-bold text-xs">M</span>
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="Mount Zion Chapel" className="w-7 h-7 object-contain" />
             <span className="text-gray-900 dark:text-white font-semibold text-sm">Mount Zion Chapel</span>
           </div>
           <div className="w-9" /> {/* Spacer for centering */}

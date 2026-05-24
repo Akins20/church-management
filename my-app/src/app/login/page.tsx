@@ -7,7 +7,6 @@ import { useAppDispatch } from '@/store/hooks';
 import { setUser, setError, setLoading } from '@/store/slices/authSlice';
 import { authService } from '@/services';
 import {
-  BuildingLibraryIcon,
   EnvelopeIcon,
   LockClosedIcon,
   EyeIcon,
@@ -128,8 +127,9 @@ export default function LoginPage() {
         {/* Content */}
         <div className="relative z-10 flex flex-col justify-center items-center w-full p-12 text-white">
           <div className="mb-8">
-            <div className="bg-white/20 backdrop-blur-sm p-6 rounded-2xl">
-              <BuildingLibraryIcon className="h-16 w-16 text-white" />
+            <div className="bg-white p-4 rounded-2xl shadow-lg">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.png" alt="Mount Zion Chapel" className="h-20 w-20 object-contain" />
             </div>
           </div>
           <h1 className="text-3xl font-bold text-center mb-3">Mount Zion Chapel</h1>
@@ -164,8 +164,9 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
           <div className="lg:hidden text-center mb-6">
-            <div className="inline-flex items-center justify-center bg-blue-600 p-3 rounded-2xl mb-3">
-              <BuildingLibraryIcon className="h-10 w-10 text-white" />
+            <div className="inline-flex items-center justify-center bg-white ring-1 ring-gray-200 p-2.5 rounded-2xl mb-3 shadow-sm">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.png" alt="Mount Zion Chapel" className="h-12 w-12 object-contain" />
             </div>
             <h1 className="text-xl font-bold text-gray-900">Mount Zion Chapel</h1>
           </div>

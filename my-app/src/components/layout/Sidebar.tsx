@@ -175,9 +175,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed: externalCollapsed
       <div className="px-3 h-14 flex items-center justify-between shrink-0">
         {!collapsed && (
           <Link href="/dashboard" className="flex items-center gap-2.5 min-w-0" onClick={onClose}>
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-[10px] flex items-center justify-center shadow-sm shrink-0">
-              <span className="text-white font-bold text-base">M</span>
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="Mount Zion Chapel" className="w-8 h-8 object-contain shrink-0" />
             <div className="min-w-0">
               <h1 className="text-sm font-semibold text-gray-900 dark:text-white leading-tight truncate">Mount Zion</h1>
               <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-tight truncate">Chapel</p>
