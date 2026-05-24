@@ -24,6 +24,8 @@ export interface AttendanceRecord {
   updatedAt: string;
 }
 
+export type AttendanceGroupKey = 'men' | 'women' | 'youth' | 'teenagers' | 'children';
+
 export interface CheckInData {
   firstName: string;
   lastName: string;
@@ -31,6 +33,31 @@ export interface CheckInData {
   phone?: string;
   ministryId?: string;
   ministryIds?: string[];
+  group?: AttendanceGroupKey;
+}
+
+export interface AttendanceGroupBucket {
+  group: AttendanceGroupKey;
+  label: string;
+  count: number;
+  attendees: Array<{
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email?: string;
+    phone?: string;
+  }>;
+}
+
+export interface AttendanceByGroupResult {
+  period: { startDate: string; endDate: string };
+  totalAttendees: number;
+  totalRecords: number;
+  groups: AttendanceGroupBucket[];
+  ungrouped: {
+    count: number;
+    attendees: AttendanceGroupBucket['attendees'];
+  };
 }
 
 export interface MinistryAttendanceGroup {
@@ -213,6 +240,20 @@ export const attendanceService = {
     if (ministryId) params.ministryId = ministryId;
     const response = await apiClient.get('/attendance/by-ministry', { params });
     return extractData<AttendanceByMinistryResult>(response);
+  },
+
+  // Get attendance broken down by demographic group (men/women/teenagers/children)
+  getAttendanceByGroup: async (
+    startDate?: string,
+    endDate?: string,
+    group?: AttendanceGroupKey
+  ): Promise<AttendanceByGroupResult> => {
+    const params: Record<string, string> = {};
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
+    if (group) params.group = group;
+    const response = await apiClient.get('/attendance/by-group', { params });
+    return extractData<AttendanceByGroupResult>(response);
   },
 
   // Get user attendance stats
