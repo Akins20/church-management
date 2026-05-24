@@ -160,16 +160,39 @@ export interface SundayService {
 }
 
 // Email Interfaces
+export interface EmailRecipient {
+  email: string;
+  name?: string;
+  deliveryStatus?: 'sent' | 'failed' | 'bounced' | 'opened' | 'clicked';
+}
+
+export interface EmailAttachmentMeta {
+  filename: string;
+  url?: string;
+  contentType?: string;
+  size?: number;
+}
+
 export interface Email {
-  id: string;
-  to: string;
+  _id: string;
+  type?: 'broadcast' | 'individual' | 'template';
   subject: string;
   body: string;
-  templateId?: string;
-  status: 'PENDING' | 'SENT' | 'FAILED';
+  htmlBody?: string;
+  recipients: EmailRecipient[];
+  from?: { email: string; name: string };
+  status: 'pending' | 'sent' | 'failed' | 'scheduled';
   sentAt?: string;
-  error?: string;
   createdAt: string;
+  tags?: string[];
+  attachments?: EmailAttachmentMeta[];
+  metadata?: {
+    totalRecipients?: number;
+    successfulDeliveries?: number;
+    failedDeliveries?: number;
+    opens?: number;
+    clicks?: number;
+  };
 }
 
 export interface EmailTemplate {

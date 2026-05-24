@@ -8,7 +8,7 @@ import {
   EnvelopeIcon,
   UserIcon,
   BuildingOffice2Icon,
-  PhotoIcon,
+  PaperClipIcon,
   XMarkIcon,
   CheckCircleIcon,
   ClockIcon,
@@ -18,6 +18,23 @@ import {
 import { PaperAirplaneIcon as PaperAirplaneSolid } from '@heroicons/react/24/solid';
 
 type RecipientType = 'ministry' | 'individual';
+
+const MAX_ATTACHMENT_SIZE = 4 * 1024 * 1024; // 4MB per file
+const MAX_ATTACHMENT_TOTAL = 6 * 1024 * 1024; // 6MB total (inline base64)
+const ALLOWED_ATTACHMENT_TYPES = [
+  'image/jpeg', 'image/png', 'image/webp', 'image/gif',
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'text/plain', 'text/csv',
+];
+
+const formatBytes = (b: number) =>
+  b < 1024 ? `${b} B` : b < 1024 * 1024 ? `${(b / 1024).toFixed(0)} KB` : `${(b / 1024 / 1024).toFixed(1)} MB`;
 
 export default function MessageEmailPage() {
   const queryClient = useQueryClient();
@@ -31,8 +48,9 @@ export default function MessageEmailPage() {
   });
   const [selectedMembers, setSelectedMembers] = useState<any[]>([]);
   const [memberSearch, setMemberSearch] = useState('');
-  const [attachedImages, setAttachedImages] = useState<File[]>([]);
-  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [attachments, setAttachments] = useState<
+    { filename: string; content: string; contentType: string; size: number }[]
+  >([]);
   const [notification, setNotification] = useState<{
     type: 'success' | 'error';
     message: string;
@@ -62,15 +80,19 @@ export default function MessageEmailPage() {
   });
 
   const sendBroadcastMutation = useMutation({
-    mutationFn: async (data: { recipients: { email: string; name?: string }[]; subject: string; body: string }) => {
+    mutationFn: async (data: {
+      recipients: { email: string; name?: string }[];
+      subject: string;
+      body: string;
+      attachments?: { filename: string; content: string; contentType: string; size: number }[];
+    }) => {
       return emailService.sendBroadcast(data);
     },
     onSuccess: () => {
       setNotification({ type: 'success', message: 'Email sent successfully!' });
       setFormData({ selectedMinistry: '', subject: '', body: '' });
       setSelectedMembers([]);
-      setAttachedImages([]);
-      setImagePreviews([]);
+      setAttachments([]);
       setTimeout(() => setNotification(null), 5000);
       queryClient.invalidateQueries({ queryKey: ['emailStats'] });
       queryClient.invalidateQueries({ queryKey: ['recentEmails'] });
@@ -131,30 +153,44 @@ export default function MessageEmailPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    const imageFiles = files.filter(file => file.type.startsWith('image/'));
-
-    if (imageFiles.length + attachedImages.length > 5) {
-      setNotification({ type: 'error', message: 'Maximum 5 images allowed' });
-      setTimeout(() => setNotification(null), 3000);
-      return;
-    }
-
-    setAttachedImages(prev => [...prev, ...imageFiles]);
-
-    imageFiles.forEach(file => {
+  const fileToBase64 = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreviews(prev => [...prev, e.target?.result as string]);
-      };
+      reader.onload = () => resolve((reader.result as string).split(',')[1] || '');
+      reader.onerror = reject;
       reader.readAsDataURL(file);
     });
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (e.target) e.target.value = '';
+    let runningTotal = attachments.reduce((s, a) => s + a.size, 0);
+    const toAdd: typeof attachments = [];
+    for (const file of files) {
+      if (!ALLOWED_ATTACHMENT_TYPES.includes(file.type)) {
+        setNotification({ type: 'error', message: `"${file.name}" — unsupported file type` });
+        setTimeout(() => setNotification(null), 3500);
+        continue;
+      }
+      if (file.size > MAX_ATTACHMENT_SIZE) {
+        setNotification({ type: 'error', message: `"${file.name}" exceeds 4MB` });
+        setTimeout(() => setNotification(null), 3500);
+        continue;
+      }
+      if (runningTotal + file.size > MAX_ATTACHMENT_TOTAL) {
+        setNotification({ type: 'error', message: 'Total attachments must be 6MB or less' });
+        setTimeout(() => setNotification(null), 3500);
+        break;
+      }
+      const content = await fileToBase64(file);
+      toAdd.push({ filename: file.name, content, contentType: file.type, size: file.size });
+      runningTotal += file.size;
+    }
+    if (toAdd.length) setAttachments((prev) => [...prev, ...toAdd]);
   };
 
-  const removeImage = (index: number) => {
-    setAttachedImages(prev => prev.filter((_, i) => i !== index));
-    setImagePreviews(prev => prev.filter((_, i) => i !== index));
+  const removeAttachment = (index: number) => {
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -163,15 +199,11 @@ export default function MessageEmailPage() {
 
     const recipients = getRecipients();
 
-    let bodyWithImages = formData.body;
-    if (attachedImages.length > 0) {
-      bodyWithImages += `\n\n[${attachedImages.length} image(s) attached]`;
-    }
-
     sendBroadcastMutation.mutate({
       recipients,
       subject: formData.subject,
-      body: bodyWithImages,
+      body: formData.body,
+      attachments: attachments.length > 0 ? attachments : undefined,
     });
   };
 
@@ -243,10 +275,10 @@ export default function MessageEmailPage() {
       )}
 
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-4 md:px-6 py-3 md:py-4 shrink-0">
+      <div className="px-4 md:px-6 pt-5 pb-3 shrink-0">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-3">
           <div>
-            <h1 className="text-lg md:text-2xl font-bold text-gray-900">Compose Email</h1>
+            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">Compose Email</h1>
             <p className="text-gray-500 text-xs md:text-sm mt-0.5 hidden sm:block">Send emails to members and ministries</p>
           </div>
           <div className="hidden sm:flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
@@ -449,37 +481,39 @@ export default function MessageEmailPage() {
                   <input
                     type="file"
                     ref={fileInputRef}
-                    onChange={handleImageUpload}
-                    accept="image/*"
+                    onChange={handleFileUpload}
+                    accept={ALLOWED_ATTACHMENT_TYPES.join(',')}
                     multiple
                     className="hidden"
                   />
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center px-3 py-2 text-sm border border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-blue-400 hover:text-blue-600 transition-colors"
+                    className="flex items-center px-3 py-2 text-sm border border-dashed border-gray-300 dark:border-white/15 rounded-xl text-gray-600 dark:text-gray-300 hover:border-blue-400 hover:text-blue-600 transition-colors"
                   >
-                    <PhotoIcon className="h-4 w-4 mr-1.5" />
-                    Attach Images
+                    <PaperClipIcon className="h-4 w-4 mr-1.5" />
+                    Attach files
                   </button>
 
-                  {imagePreviews.length > 0 && (
-                    <div className="flex space-x-2">
-                      {imagePreviews.map((preview, index) => (
-                        <div key={index} className="relative">
-                          <img
-                            src={preview}
-                            alt={`Preview ${index + 1}`}
-                            className="h-10 w-10 object-cover rounded-lg border border-gray-200"
-                          />
+                  {attachments.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {attachments.map((att, index) => (
+                        <span
+                          key={index}
+                          className="inline-flex items-center gap-1.5 pl-2.5 pr-1.5 py-1 rounded-lg bg-gray-100 dark:bg-white/[0.06] text-xs text-gray-700 dark:text-gray-300 max-w-[180px]"
+                        >
+                          <PaperClipIcon className="w-3 h-3 shrink-0 text-gray-400" />
+                          <span className="truncate">{att.filename}</span>
+                          <span className="text-gray-400 shrink-0">{formatBytes(att.size)}</span>
                           <button
                             type="button"
-                            onClick={() => removeImage(index)}
-                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600"
+                            onClick={() => removeAttachment(index)}
+                            className="hover:bg-black/10 dark:hover:bg-white/10 rounded-full p-0.5 shrink-0"
+                            aria-label={`Remove ${att.filename}`}
                           >
                             <XMarkIcon className="h-3 w-3" />
                           </button>
-                        </div>
+                        </span>
                       ))}
                     </div>
                   )}
@@ -515,11 +549,11 @@ export default function MessageEmailPage() {
               <h2 className="font-semibold text-gray-900">Recent Emails</h2>
             </div>
             <div className="flex-1 p-4 overflow-y-auto">
-              {recentEmails?.data && recentEmails.data.length > 0 ? (
+              {recentEmails?.emails && recentEmails.emails.length > 0 ? (
                 <div className="space-y-2">
-                  {recentEmails.data.slice(0, 4).map((email) => (
+                  {recentEmails.emails.slice(0, 4).map((email) => (
                     <div
-                      key={email.id}
+                      key={email._id}
                       className="p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
                     >
                       <div className="flex items-center justify-between mb-1">
@@ -527,10 +561,10 @@ export default function MessageEmailPage() {
                           {email.subject}
                         </p>
                         <span
-                          className={`px-2 py-0.5 text-xs font-medium rounded-full shrink-0 ${
-                            email.status === 'SENT'
+                          className={`px-2 py-0.5 text-xs font-medium rounded-full shrink-0 capitalize ${
+                            email.status === 'sent'
                               ? 'bg-green-100 text-green-700'
-                              : email.status === 'PENDING'
+                              : email.status === 'pending' || email.status === 'scheduled'
                               ? 'bg-amber-100 text-amber-700'
                               : 'bg-red-100 text-red-700'
                           }`}
@@ -539,9 +573,12 @@ export default function MessageEmailPage() {
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <p className="text-xs text-gray-500 truncate">{email.to}</p>
+                        <p className="text-xs text-gray-500 truncate">
+                          {email.recipients?.[0]?.email}
+                          {email.recipients && email.recipients.length > 1 ? ` +${email.recipients.length - 1}` : ''}
+                        </p>
                         <span className="text-xs text-gray-400">
-                          {new Date(email.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          {new Date(email.sentAt || email.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                         </span>
                       </div>
                     </div>

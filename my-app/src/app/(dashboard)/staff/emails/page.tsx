@@ -197,13 +197,16 @@ export default function EmailCenter() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {emails?.data && emails.data.length > 0 ? (
-                emails.data.map((email) => (
-                  <tr key={email.id} className="hover:bg-gray-50">
+              {emails?.emails && emails.emails.length > 0 ? (
+                emails.emails.map((email) => (
+                  <tr key={email._id} className="hover:bg-gray-50">
                     <td className="px-4 py-4">
                       <div className="flex items-center">
                         <EnvelopeIcon className="h-5 w-5 text-gray-400 mr-2" />
-                        <span className="text-sm text-gray-900">{email.to}</span>
+                        <span className="text-sm text-gray-900">
+                          {email.recipients?.[0]?.email}
+                          {email.recipients && email.recipients.length > 1 ? ` +${email.recipients.length - 1}` : ''}
+                        </span>
                       </div>
                     </td>
                     <td className="px-4 py-4 text-sm text-gray-600 max-w-xs truncate">
@@ -211,10 +214,10 @@ export default function EmailCenter() {
                     </td>
                     <td className="px-4 py-4">
                       <span
-                        className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          email.status === 'SENT'
+                        className={`px-2 py-1 text-xs font-medium rounded-full capitalize ${
+                          email.status === 'sent'
                             ? 'bg-green-100 text-green-800'
-                            : email.status === 'PENDING'
+                            : email.status === 'pending' || email.status === 'scheduled'
                             ? 'bg-yellow-100 text-yellow-800'
                             : 'bg-red-100 text-red-800'
                         }`}
@@ -223,14 +226,14 @@ export default function EmailCenter() {
                       </span>
                     </td>
                     <td className="px-4 py-4 text-sm text-gray-500">
-                      {new Date(email.createdAt).toLocaleDateString()}
+                      {new Date(email.sentAt || email.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-4 py-4 text-right">
-                      {email.status === 'FAILED' && (
+                      {email.status === 'failed' && (
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => retryMutation.mutate(email.id)}
+                          onClick={() => retryMutation.mutate(email._id)}
                           isLoading={retryMutation.isPending}
                         >
                           <ArrowPathIcon className="h-4 w-4 mr-1" />

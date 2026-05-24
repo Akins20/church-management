@@ -1,21 +1,62 @@
 import apiClient from '@/lib/api-client';
-import { Email, EmailTemplate, PaginatedResponse } from '@/types';
+import { Email, EmailTemplate } from '@/types';
+
+const extractData = <T>(response: any): T => {
+  if (response?.data?.data !== undefined) return response.data.data;
+  return response?.data;
+};
+
+export interface EmailAttachmentInput {
+  filename: string;
+  content: string; // base64 (no data: prefix)
+  contentType: string;
+  size?: number;
+}
+
+export interface EmailListResult {
+  emails: Email[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
 
 export const emailService = {
   // Get all emails
-  getEmails: async (page = 1, limit = 50): Promise<PaginatedResponse<Email>> => {
+  getEmails: async (page = 1, limit = 50): Promise<EmailListResult> => {
     const response = await apiClient.get('/emails', { params: { page, limit } });
-    return response.data;
+    return extractData<EmailListResult>(response);
   },
 
-  // Send individual email
-  sendEmail: async (data: { to: string; subject: string; body: string }): Promise<Email> => {
-    const response = await apiClient.post('/emails/send', data);
-    return response.data;
+  // Get a single email (full content)
+  getEmailById: async (id: string): Promise<Email> => {
+    const response = await apiClient.get(`/emails/${id}`);
+    return extractData<Email>(response);
+  },
+
+  // Send individual email (backend expects recipients[])
+  sendEmail: async (data: {
+    to: string;
+    subject: string;
+    body: string;
+    attachments?: EmailAttachmentInput[];
+  }): Promise<Email> => {
+    const payload = {
+      recipients: [{ email: data.to }],
+      subject: data.subject,
+      body: data.body,
+      attachments: data.attachments,
+    };
+    const response = await apiClient.post('/emails/send', payload);
+    return extractData<Email>(response);
   },
 
   // Send broadcast email
-  sendBroadcast: async (data: { recipients: { email: string; name?: string }[]; subject: string; body: string }): Promise<void> => {
+  sendBroadcast: async (data: {
+    recipients: { email: string; name?: string }[];
+    subject: string;
+    body: string;
+    attachments?: EmailAttachmentInput[];
+  }): Promise<void> => {
     await apiClient.post('/emails/broadcast', data);
   },
 
