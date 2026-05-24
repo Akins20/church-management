@@ -132,7 +132,7 @@ export default function LoginPage() {
               <BuildingLibraryIcon className="h-16 w-16 text-white" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-center mb-3">Church Management System</h1>
+          <h1 className="text-3xl font-bold text-center mb-3">Mount Zion Chapel</h1>
           <p className="text-lg text-blue-100 text-center max-w-sm mb-8">
             Manage your church operations efficiently
           </p>
@@ -167,7 +167,7 @@ export default function LoginPage() {
             <div className="inline-flex items-center justify-center bg-blue-600 p-3 rounded-2xl mb-3">
               <BuildingLibraryIcon className="h-10 w-10 text-white" />
             </div>
-            <h1 className="text-xl font-bold text-gray-900">Church Management</h1>
+            <h1 className="text-xl font-bold text-gray-900">Mount Zion Chapel</h1>
           </div>
 
           {/* Form Container */}
@@ -320,7 +320,7 @@ export default function LoginPage() {
           {/* Footer */}
           <div className="mt-6 text-center">
             <p className="text-xs text-gray-400">
-              &copy; {new Date().getFullYear()} Church Management System
+              &copy; {new Date().getFullYear()} Mount Zion Chapel
             </p>
           </div>
         </div>

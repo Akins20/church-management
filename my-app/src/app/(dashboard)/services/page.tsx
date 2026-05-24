@@ -71,7 +71,7 @@ export default function ServiceCalendar() {
       {/* Header */}
       <div className="text-center">
         <h1 className="text-3xl font-bold text-gray-900">Service Calendar</h1>
-        <p className="text-gray-600 mt-2">View upcoming services and events</p>
+        <p className="text-gray-600 mt-2">Browse upcoming services and events. Select a date to see what&apos;s scheduled.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">

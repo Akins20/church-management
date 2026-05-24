@@ -105,7 +105,7 @@ export default function AnalyticsDashboard() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Analytics Dashboard</h1>
-          <p className="text-gray-600">Comprehensive insights into church growth and engagement</p>
+          <p className="text-gray-600">Trends in attendance, growth and engagement. Charts update with the selected time range.</p>
         </div>
         <div className="flex items-center space-x-3">
           <div className="flex items-center space-x-2">

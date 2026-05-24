@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAppSelector } from '@/store/hooks';
 import { selectUser, selectUserRole } from '@/store/slices/authSlice';
-import { attendanceService, serviceService, noteService, ministryService, userService } from '@/services';
+import { attendanceService, serviceService, noteService, ministryService, userService, activityService } from '@/services';
 import {
   UserGroupIcon,
   ChartBarIcon,
@@ -72,6 +72,21 @@ export default function MemberDashboard() {
     queryFn: () => attendanceService.getAttendanceAnalytics(),
   });
 
+  // Recent attendance across all days (staff/admin) — not just today
+  const { data: recentAttendanceResp } = useQuery({
+    queryKey: ['recentAttendance'],
+    queryFn: () => attendanceService.getAttendance({}, 1, 5),
+    enabled: isStaffOrAdmin,
+  });
+
+  // Recent activity log (admin only)
+  const isAdmin = roleMatches(userRole, [UserRole.ADMIN]);
+  const { data: recentActivity } = useQuery({
+    queryKey: ['dashboardActivity'],
+    queryFn: () => activityService.list({}, 1, 6),
+    enabled: isAdmin,
+  });
+
   const attendanceList = Array.isArray(userAttendance) ? userAttendance : [];
   const attendanceRate = attendanceList.length > 0
     ? Math.round((attendanceList.filter(a => a.status === 'present').length / attendanceList.length) * 100)
@@ -79,6 +94,11 @@ export default function MemberDashboard() {
 
   const todayCount = todayAttendance?.length || 0;
   const notesList = recentNotes?.notes || [];
+  // Recent attendance: latest records across days for staff/admin, else the member's own
+  const recentAttendanceRecords: any[] = isStaffOrAdmin
+    ? ((recentAttendanceResp as any)?.data || (recentAttendanceResp as any)?.attendance || [])
+    : attendanceList;
+  const activityLogs: any[] = (recentActivity as any)?.logs || [];
   const totalMembers = usersData?.total || (usersData as any)?.data?.total || 0;
   const totalMinistries = ministriesData?.total || ministriesData?.data?.length || 0;
   const avgAttendance = attendanceAnalytics?.summary?.avgAttendancePerDay
@@ -244,55 +264,28 @@ export default function MemberDashboard() {
               </Link>
             </div>
             <div className="flex-1 min-h-0">
-              {(todayAttendance || []).length > 0 ? (
+              {recentAttendanceRecords.length > 0 ? (
                 <div className="space-y-2">
-                  {(todayAttendance || []).slice(0, 4).map((record: any, index: number) => {
+                  {recentAttendanceRecords.slice(0, 5).map((record: any, index: number) => {
                     const attendee = typeof record.userId === 'object' ? record.userId : null;
+                    const present = (record.status || 'present') === 'present';
                     return (
                       <div key={record._id || index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-white/[0.04] rounded-xl">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
-                            <CheckCircleIcon className="w-5 h-5" />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                              {attendee ? `${attendee.firstName} ${attendee.lastName}` : 'Member'}
-                            </p>
-                            <p className="text-xs text-gray-400 dark:text-gray-500">
-                              {new Date(record.checkInTime || record.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                            </p>
-                          </div>
-                        </div>
-                        <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 shrink-0">
-                          Present
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : attendanceList.length > 0 ? (
-                <div className="space-y-2">
-                  {attendanceList.slice(0, 4).map((attendance: any, index: number) => {
-                    const attendee = typeof attendance.userId === 'object' ? attendance.userId : null;
-                    const serviceName = attendance.serviceId?.theme || attendance.notes || 'Church Service';
-                    const present = attendance.status === 'present';
-                    return (
-                      <div key={attendance._id || index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-white/[0.04] rounded-xl">
                         <div className="flex items-center gap-3 min-w-0">
                           <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${present ? 'bg-emerald-500/10 text-emerald-600' : 'bg-red-500/10 text-red-600'}`}>
                             {present ? <CheckCircleIcon className="w-5 h-5" /> : <ClockIcon className="w-5 h-5" />}
                           </div>
                           <div className="min-w-0">
                             <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                              {attendee ? `${attendee.firstName} ${attendee.lastName}` : serviceName}
+                              {attendee ? `${attendee.firstName} ${attendee.lastName}` : 'Member'}
                             </p>
                             <p className="text-xs text-gray-400 dark:text-gray-500">
-                              {new Date(attendance.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                              {new Date(record.checkInTime || record.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                             </p>
                           </div>
                         </div>
-                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full shrink-0 ${present ? 'bg-emerald-500/10 text-emerald-600' : 'bg-red-500/10 text-red-600'}`}>
-                          {attendance.status}
+                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full shrink-0 capitalize ${present ? 'bg-emerald-500/10 text-emerald-600' : 'bg-red-500/10 text-red-600'}`}>
+                          {record.status || 'present'}
                         </span>
                       </div>
                     );
@@ -301,11 +294,42 @@ export default function MemberDashboard() {
               ) : (
                 <div className="flex flex-col items-center justify-center text-center py-8">
                   <ClockIcon className="w-10 h-10 text-gray-300 mb-2" />
-                  <p className="text-gray-500 dark:text-gray-400 dark:text-gray-500 text-sm">No attendance records</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">No attendance records yet</p>
                 </div>
               )}
             </div>
           </div>
+
+          {/* Recent Activity (admin) */}
+          {isAdmin && (
+            <div className="rounded-2xl bg-white dark:bg-white/[0.04] ring-1 ring-black/5 dark:ring-white/[0.08] shadow-sm p-5 flex flex-col lg:col-span-3">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-base font-semibold text-gray-900 dark:text-white">Recent Activity</h2>
+                <Link href="/admin/activity" className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 font-medium">
+                  View All
+                </Link>
+              </div>
+              {activityLogs.length > 0 ? (
+                <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {activityLogs.map((log: any, index: number) => (
+                    <li key={log._id || index} className="flex items-start gap-3 p-2.5 rounded-xl bg-gray-50 dark:bg-white/[0.04]">
+                      <span className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-sm text-gray-900 dark:text-gray-100 truncate">{log.description}</p>
+                        <p className="text-[11px] text-gray-400 dark:text-gray-500">
+                          {new Date(log.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="flex flex-col items-center justify-center text-center py-6">
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">No recent activity</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

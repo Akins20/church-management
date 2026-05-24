@@ -6,8 +6,8 @@ import { Providers } from "@/lib/providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Church Management System",
-  description: "Comprehensive church management application",
+  title: "Mount Zion Chapel",
+  description: "Mount Zion Chapel — church management",
 };
 
 export default function RootLayout({

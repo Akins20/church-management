@@ -117,7 +117,7 @@ export default function ForgotPasswordPage() {
             {/* Footer */}
             <div className="mt-8 text-center">
               <p className="text-sm text-gray-500">
-                &copy; {new Date().getFullYear()} Church Management System. All rights reserved.
+                &copy; {new Date().getFullYear()} Mount Zion Chapel. All rights reserved.
               </p>
             </div>
           </div>
@@ -301,7 +301,7 @@ export default function ForgotPasswordPage() {
           {/* Footer */}
           <div className="mt-8 text-center">
             <p className="text-sm text-gray-500">
-              &copy; {new Date().getFullYear()} Church Management System. All rights reserved.
+              &copy; {new Date().getFullYear()} Mount Zion Chapel. All rights reserved.
             </p>
           </div>
         </div>

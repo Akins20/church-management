@@ -176,11 +176,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed: externalCollapsed
         {!collapsed && (
           <Link href="/dashboard" className="flex items-center gap-2.5 min-w-0" onClick={onClose}>
             <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-[10px] flex items-center justify-center shadow-sm shrink-0">
-              <span className="text-white font-bold text-base">C</span>
+              <span className="text-white font-bold text-base">M</span>
             </div>
             <div className="min-w-0">
-              <h1 className="text-sm font-semibold text-gray-900 dark:text-white leading-tight truncate">Church</h1>
-              <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-tight truncate">Management</p>
+              <h1 className="text-sm font-semibold text-gray-900 dark:text-white leading-tight truncate">Mount Zion</h1>
+              <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-tight truncate">Chapel</p>
             </div>
           </Link>
         )}
@@ -188,14 +188,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed: externalCollapsed
           {onClose && (
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg hover:bg-black/[0.06] dark:hover:bg-white/10 transition-colors lg:hidden"
+              className="p-1.5 rounded-lg hover:bg-black/[0.06] dark:hover:bg-white/10 transition-colors md:hidden"
             >
               <XMarkIcon className="w-5 h-5 text-gray-500 dark:text-gray-400" />
             </button>
           )}
           <button
             onClick={handleToggle}
-            className={`p-1.5 rounded-lg hover:bg-black/[0.06] dark:hover:bg-white/10 transition-colors hidden lg:block ${
+            className={`p-1.5 rounded-lg hover:bg-black/[0.06] dark:hover:bg-white/10 transition-colors hidden md:block ${
               collapsed ? 'mx-auto' : ''
             }`}
             title={collapsed ? 'Expand' : 'Collapse'}

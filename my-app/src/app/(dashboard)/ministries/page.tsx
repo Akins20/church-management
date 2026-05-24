@@ -232,10 +232,11 @@ export default function MinistryDirectory() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">Ministries</h1>
-            <p className="text-gray-500 text-sm mt-0.5">View and manage church ministries</p>
+            <p className="text-gray-500 text-sm mt-0.5">Create groups (Men, Women, Youth, etc.), set a leader, and add members. Members added here drive the attendance-by-group report.</p>
           </div>
           <button
             onClick={() => { resetForm(); setShowCreateModal(true); }}
+            title="Create a new ministry/group and assign a leader and members"
             className="flex items-center justify-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-xl transition-colors w-full sm:w-auto"
           >
             <PlusIcon className="w-4 h-4 mr-2" />

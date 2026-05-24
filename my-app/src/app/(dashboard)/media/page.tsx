@@ -105,7 +105,7 @@ export default function MediaGallery() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Media Gallery</h1>
-          <p className="text-gray-600">Browse and download church media content</p>
+          <p className="text-gray-600">Browse and download church files — images, audio, video and documents. Use the toggle to switch between grid and list view.</p>
         </div>
         <div className="flex items-center space-x-2">
           <button

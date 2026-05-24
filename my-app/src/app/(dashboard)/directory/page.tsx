@@ -62,7 +62,7 @@ export default function MemberDirectory() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Member Directory</h1>
-          <p className="text-gray-600">Browse and connect with church members</p>
+          <p className="text-gray-600">Search members by name or email and view their contact details and ministries.</p>
         </div>
 
         <div className="flex items-center space-x-3">

@@ -69,11 +69,6 @@ export default function MessageEmailPage() {
     queryFn: () => ministryService.getMinistries(1, 100),
   });
 
-  const { data: emailStats } = useQuery({
-    queryKey: ['emailStats'],
-    queryFn: emailService.getEmailStats,
-  });
-
   const { data: recentEmails } = useQuery({
     queryKey: ['recentEmails'],
     queryFn: () => emailService.getEmails(1, 4),
@@ -244,13 +239,6 @@ export default function MessageEmailPage() {
 
   const recipientCount = getRecipients().length;
 
-  const stats = [
-    { name: 'Sent', value: emailStats?.totalSent || 0, icon: PaperAirplaneIcon, color: 'bg-blue-500' },
-    { name: 'Delivered', value: emailStats?.delivered || 0, icon: CheckCircleIcon, color: 'bg-green-500' },
-    { name: 'Pending', value: emailStats?.pending || 0, icon: ClockIcon, color: 'bg-amber-500' },
-    { name: 'Failed', value: emailStats?.failed || 0, icon: XCircleIcon, color: 'bg-red-500' },
-  ];
-
   return (
     <div className="min-h-full flex flex-col bg-gray-50">
       {/* Notification */}
@@ -283,27 +271,11 @@ export default function MessageEmailPage() {
               Pick recipients (a whole ministry or selected individuals), write your message, optionally attach files, then Send. Sent emails appear under Message &gt; History.
             </p>
           </div>
-          <div className="hidden sm:flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
-            {stats.map((stat) => {
-              const Icon = stat.icon;
-              return (
-                <div key={stat.name} className="flex items-center bg-gray-50 border border-gray-200 rounded-xl px-2 md:px-3 py-1.5 md:py-2 shrink-0">
-                  <div className={`${stat.color} p-1 md:p-1.5 rounded-lg mr-1.5 md:mr-2`}>
-                    <Icon className="h-3 w-3 md:h-3.5 md:w-3.5 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] md:text-xs text-gray-500">{stat.name}</p>
-                    <p className="text-xs md:text-sm font-bold text-gray-900">{stat.value}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex flex-col lg:flex-row min-h-0 p-4 md:p-4 gap-4 md:gap-3">
+      <div className="flex-1 flex flex-col lg:flex-row min-h-0 p-4 md:p-6 gap-4 md:gap-3">
         {/* Compose Form */}
         <div className="flex-1 min-w-0">
           <div className="bg-white rounded-xl border border-gray-200 h-full flex flex-col">
