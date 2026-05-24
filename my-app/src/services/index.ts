@@ -10,3 +10,4 @@ export * from './media.service';
 export * from './admin.service';
 export * from './note.service';
 export * from './folder.service';
+export * from './activity.service';

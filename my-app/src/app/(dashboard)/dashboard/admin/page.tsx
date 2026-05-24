@@ -16,6 +16,7 @@ import {
   ExclamationTriangleIcon,
   Cog6ToothIcon,
   ShieldCheckIcon,
+  ClipboardDocumentListIcon,
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
@@ -117,6 +118,7 @@ export default function AdminDashboard() {
     { href: '/admin/queue', label: 'Queue Monitor', sub: `${queueStats?.pending ?? queueStats?.waiting ?? 0} pending`, icon: ServerIcon, tint: 'bg-amber-500/10', fg: 'text-amber-600' },
     { href: '/admin/cache', label: 'Cache Control', sub: 'Manage cache', icon: CpuChipIcon, tint: 'bg-emerald-500/10', fg: 'text-emerald-600' },
     { href: '/admin/settings', label: 'System Settings', sub: 'Configuration', icon: Cog6ToothIcon, tint: 'bg-gray-500/10', fg: 'text-gray-600' },
+    { href: '/admin/activity', label: 'Activity Log', sub: 'Audit trail', icon: ClipboardDocumentListIcon, tint: 'bg-rose-500/10', fg: 'text-rose-600' },
     { href: '/analytics', label: 'Analytics', sub: 'View reports', icon: ArrowTrendingUpIcon, tint: 'bg-indigo-500/10', fg: 'text-indigo-600' },
   ];
 
