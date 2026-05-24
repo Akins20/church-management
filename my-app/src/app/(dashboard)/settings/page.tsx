@@ -73,6 +73,35 @@ export default function SettingsPage() {
     updateProfileMutation.mutate(profileForm);
   };
 
+  // --- Two-factor authentication ---
+  const twoFaEnabled = !!(user as any)?.twoFactorEnabled;
+  const [twoFaStep, setTwoFaStep] = useState<'idle' | 'confirming'>('idle');
+  const [twoFaCode, setTwoFaCode] = useState('');
+  const flash = (type: 'success' | 'error', message: string) => {
+    setNotification({ type, message });
+    setTimeout(() => setNotification(null), 3000);
+  };
+  const requestEnable2FA = useMutation({
+    mutationFn: () => authService.requestEnableTwoFactor(),
+    onSuccess: () => { setTwoFaStep('confirming'); flash('success', 'Verification code sent to your email'); },
+    onError: () => flash('error', 'Could not send code'),
+  });
+  const confirmEnable2FA = useMutation({
+    mutationFn: () => authService.confirmEnableTwoFactor(twoFaCode.trim()),
+    onSuccess: () => {
+      dispatch(updateUser({ twoFactorEnabled: true } as any));
+      setTwoFaStep('idle');
+      setTwoFaCode('');
+      flash('success', 'Two-factor authentication enabled');
+    },
+    onError: () => flash('error', 'Invalid or expired code'),
+  });
+  const disable2FA = useMutation({
+    mutationFn: () => authService.disableTwoFactor(),
+    onSuccess: () => { dispatch(updateUser({ twoFactorEnabled: false } as any)); flash('success', 'Two-factor authentication disabled'); },
+    onError: () => flash('error', 'Could not disable 2FA'),
+  });
+
 
   const tabs = [
     { id: 'profile' as TabType, name: 'Profile', icon: UserCircleIcon },
@@ -286,6 +315,65 @@ export default function SettingsPage() {
                           </span>
                         </div>
                       </div>
+                    </div>
+
+                    {/* Two-Factor Authentication */}
+                    <div className="p-4 bg-gray-50 rounded-xl">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <h3 className="font-medium text-gray-900">Two-Factor Authentication</h3>
+                          <p className="text-sm text-gray-500 mt-1">
+                            Require an emailed code at sign-in.{' '}
+                            <span className={twoFaEnabled ? 'text-green-600 font-medium' : 'text-gray-500'}>
+                              {twoFaEnabled ? 'Enabled' : 'Disabled'}
+                            </span>
+                          </p>
+                        </div>
+                        {twoFaEnabled ? (
+                          <button
+                            onClick={() => disable2FA.mutate()}
+                            disabled={disable2FA.isPending}
+                            className="px-4 py-2 rounded-xl bg-red-50 text-red-600 text-sm font-medium hover:bg-red-100 disabled:opacity-50 shrink-0"
+                          >
+                            {disable2FA.isPending ? 'Disabling…' : 'Disable'}
+                          </button>
+                        ) : twoFaStep === 'idle' ? (
+                          <button
+                            onClick={() => requestEnable2FA.mutate()}
+                            disabled={requestEnable2FA.isPending}
+                            className="px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50 shrink-0"
+                          >
+                            {requestEnable2FA.isPending ? 'Sending…' : 'Enable'}
+                          </button>
+                        ) : null}
+                      </div>
+
+                      {!twoFaEnabled && twoFaStep === 'confirming' && (
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            maxLength={6}
+                            value={twoFaCode}
+                            onChange={(e) => setTwoFaCode(e.target.value.replace(/\D/g, ''))}
+                            placeholder="6-digit code"
+                            className="px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                          <button
+                            onClick={() => confirmEnable2FA.mutate()}
+                            disabled={confirmEnable2FA.isPending || twoFaCode.length < 6}
+                            className="px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+                          >
+                            {confirmEnable2FA.isPending ? 'Verifying…' : 'Confirm'}
+                          </button>
+                          <button
+                            onClick={() => { setTwoFaStep('idle'); setTwoFaCode(''); }}
+                            className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      )}
                     </div>
 
                     {/* Active Sessions */}

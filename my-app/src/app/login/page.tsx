@@ -30,6 +30,12 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  // 2FA challenge state
+  const [step, setStep] = useState<'login' | '2fa'>('login');
+  const [challengeToken, setChallengeToken] = useState('');
+  const [twoFactorEmail, setTwoFactorEmail] = useState('');
+  const [code, setCode] = useState('');
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
@@ -45,8 +51,14 @@ export default function LoginPage() {
     dispatch(setLoading(true));
 
     try {
-      const response = await authService.login(formData);
-      dispatch(setUser(response.user));
+      const result = await authService.login(formData);
+      if ('twoFactorRequired' in result) {
+        setChallengeToken(result.challengeToken);
+        setTwoFactorEmail(result.email);
+        setStep('2fa');
+        return;
+      }
+      dispatch(setUser(result.user));
       router.push('/dashboard');
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || 'Login failed. Please try again.';
@@ -55,6 +67,31 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false);
       dispatch(setLoading(false));
+    }
+  };
+
+  const handleVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setLocalError('');
+    try {
+      const result = await authService.verifyTwoFactor(challengeToken, code.trim());
+      dispatch(setUser(result.user));
+      router.push('/dashboard');
+    } catch (error: any) {
+      setLocalError(error.response?.data?.message || 'Invalid or expired code.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    setLocalError('');
+    try {
+      await authService.resendTwoFactor(challengeToken);
+      setLocalError('A new code has been sent.');
+    } catch {
+      setLocalError('Could not resend the code.');
     }
   };
 
@@ -137,8 +174,14 @@ export default function LoginPage() {
           <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
             {/* Header */}
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Welcome Back</h2>
-              <p className="text-gray-500 mt-1 text-sm">Sign in to your account</p>
+              <h2 className="text-2xl font-bold text-gray-900">
+                {step === '2fa' ? 'Enter your code' : 'Welcome Back'}
+              </h2>
+              <p className="text-gray-500 mt-1 text-sm">
+                {step === '2fa'
+                  ? `We sent a 6-digit code to ${twoFactorEmail}`
+                  : 'Sign in to your account'}
+              </p>
             </div>
 
             {/* Error Message */}
@@ -149,7 +192,48 @@ export default function LoginPage() {
               </div>
             )}
 
+            {/* 2FA code step */}
+            {step === '2fa' && (
+              <form onSubmit={handleVerify} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Verification code
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    autoFocus
+                    maxLength={6}
+                    value={code}
+                    onChange={(e) => { setCode(e.target.value.replace(/\D/g, '')); setLocalError(''); }}
+                    placeholder="123456"
+                    className="w-full px-4 py-3 text-center text-2xl tracking-[0.4em] font-semibold bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white text-gray-900"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={isLoading || code.length < 6}
+                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium py-3 rounded-xl transition-colors flex items-center justify-center"
+                >
+                  {isLoading ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    'Verify & sign in'
+                  )}
+                </button>
+                <div className="flex items-center justify-between text-sm">
+                  <button type="button" onClick={() => { setStep('login'); setCode(''); setLocalError(''); }} className="text-gray-500 hover:text-gray-700">
+                    Back
+                  </button>
+                  <button type="button" onClick={handleResend} className="text-blue-600 hover:text-blue-700 font-medium">
+                    Resend code
+                  </button>
+                </div>
+              </form>
+            )}
+
             {/* Login Form */}
+            {step === 'login' && (
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Email Field */}
               <div>
@@ -230,6 +314,7 @@ export default function LoginPage() {
                 )}
               </button>
             </form>
+            )}
           </div>
 
           {/* Footer */}

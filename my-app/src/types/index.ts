@@ -24,6 +24,7 @@ export interface User {
   role: UserRole | string;
   isActive?: boolean;
   isEmailVerified?: boolean;
+  twoFactorEnabled?: boolean;
   metadata?: {
     membershipStatus?: MembershipStatus | string;
     joinDate?: string;
