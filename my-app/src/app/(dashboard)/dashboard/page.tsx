@@ -53,6 +53,13 @@ export default function MemberDashboard() {
     enabled: !!userId && !isStaffOrAdmin,
   });
 
+  // Fetch total members count (staff/admin only - endpoint requires elevated role)
+  const { data: usersData } = useQuery({
+    queryKey: ['usersStats'],
+    queryFn: () => userService.getUsers({}, 1, 1),
+    enabled: isStaffOrAdmin,
+  });
+
   // Fetch ministries count
   const { data: ministriesData } = useQuery({
     queryKey: ['ministriesStats'],
@@ -72,6 +79,7 @@ export default function MemberDashboard() {
 
   const todayCount = todayAttendance?.length || 0;
   const notesList = recentNotes?.notes || [];
+  const totalMembers = usersData?.total || (usersData as any)?.data?.total || 0;
   const totalMinistries = ministriesData?.total || ministriesData?.data?.length || 0;
   const avgAttendance = attendanceAnalytics?.summary?.avgAttendancePerDay
     ? Math.round(attendanceAnalytics.summary.avgAttendancePerDay)
