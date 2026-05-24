@@ -19,6 +19,7 @@ import {
   ArrowRightOnRectangleIcon,
   HomeIcon,
   XMarkIcon,
+  ClipboardDocumentListIcon,
 } from '@heroicons/react/24/outline';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 
@@ -80,6 +81,12 @@ const navigationItems: NavItem[] = [
     href: '/ministries',
     icon: BuildingOffice2Icon,
     roles: [UserRole.NEWCOMER, UserRole.MEMBER, UserRole.STAFF, UserRole.ADMIN],
+  },
+  {
+    name: 'Activity',
+    href: '/admin/activity',
+    icon: ClipboardDocumentListIcon,
+    roles: [UserRole.ADMIN],
   },
   {
     name: 'Settings',
