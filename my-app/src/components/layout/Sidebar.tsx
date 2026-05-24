@@ -20,6 +20,7 @@ import {
   HomeIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
+import { ThemeToggle } from '@/components/common/ThemeToggle';
 
 interface SubItem {
   name: string;
@@ -70,13 +71,9 @@ const navigationItems: NavItem[] = [
   },
   {
     name: 'Notepad',
-    href: '/notepad',
+    href: '/notepad/notes',
     icon: DocumentTextIcon,
     roles: [UserRole.NEWCOMER, UserRole.MEMBER, UserRole.STAFF, UserRole.ADMIN],
-    children: [
-      { name: 'Notes', href: '/notepad/notes' },
-      { name: 'Recently Deleted', href: '/notepad/notes?view=deleted' },
-    ],
   },
   {
     name: 'Ministries',
@@ -149,57 +146,74 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed: externalCollapsed
     }
   };
 
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await authService.logout();
+      dispatch(clearUser());
+      router.push('/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+      setIsLoggingOut(false);
+    }
+  };
+
   return (
     <div
       className={`${
-        collapsed ? 'w-16' : 'w-56'
-      } bg-[#1c1c1e] h-screen text-white flex flex-col transition-all duration-300 ease-in-out`}
+        collapsed ? 'w-16' : 'w-60'
+      } bg-gray-100/80 dark:bg-[#1c1c1e]/85 backdrop-blur-xl border-r border-black/[0.06] dark:border-white/[0.08] h-screen text-gray-900 dark:text-gray-100 flex flex-col transition-all duration-300 ease-in-out`}
     >
       {/* Header */}
-      <div className="p-4 flex items-center justify-between border-b border-gray-800">
+      <div className="px-3 h-14 flex items-center justify-between shrink-0">
         {!collapsed && (
-          <Link href="/dashboard" className="flex items-center space-x-3" onClick={onClose}>
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-lg">C</span>
+          <Link href="/dashboard" className="flex items-center gap-2.5 min-w-0" onClick={onClose}>
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-[10px] flex items-center justify-center shadow-sm shrink-0">
+              <span className="text-white font-bold text-base">C</span>
             </div>
-            <div>
-              <h1 className="text-lg font-semibold text-white">Dashboard</h1>
-              <p className="text-xs text-gray-500">Church Management</p>
+            <div className="min-w-0">
+              <h1 className="text-sm font-semibold text-gray-900 dark:text-white leading-tight truncate">Church</h1>
+              <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-tight truncate">Management</p>
             </div>
           </Link>
         )}
-        <div className="flex items-center space-x-2">
-          {/* Close button for mobile */}
+        <div className="flex items-center gap-1">
           {onClose && (
             <button
               onClick={onClose}
-              className="p-2 rounded-xl bg-gray-800/50 hover:bg-gray-700 transition-colors lg:hidden"
+              className="p-1.5 rounded-lg hover:bg-black/[0.06] dark:hover:bg-white/10 transition-colors lg:hidden"
             >
-              <XMarkIcon className="w-5 h-5 text-gray-400" />
+              <XMarkIcon className="w-5 h-5 text-gray-500 dark:text-gray-400" />
             </button>
           )}
-          {/* Collapse/Expand button for desktop */}
           <button
             onClick={handleToggle}
-            className={`p-2 rounded-xl bg-gray-800/50 hover:bg-gray-700 transition-colors hidden lg:block ${
+            className={`p-1.5 rounded-lg hover:bg-black/[0.06] dark:hover:bg-white/10 transition-colors hidden lg:block ${
               collapsed ? 'mx-auto' : ''
             }`}
+            title={collapsed ? 'Expand' : 'Collapse'}
           >
             {collapsed ? (
-              <Bars3Icon className="w-5 h-5 text-gray-400" />
+              <Bars3Icon className="w-5 h-5 text-gray-500 dark:text-gray-400" />
             ) : (
-              <ChevronLeftIcon className="w-5 h-5 text-gray-400" />
+              <ChevronLeftIcon className="w-5 h-5 text-gray-500 dark:text-gray-400" />
             )}
           </button>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-4 px-3">
-        <div className="space-y-1">
+      <nav className="flex-1 overflow-y-auto py-2 px-2">
+        {!collapsed && (
+          <p className="px-3 pt-1 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+            Menu
+          </p>
+        )}
+        <div className="space-y-0.5">
           {filteredNav.map((item) => {
             const Icon = item.icon;
-            const active = isActive(item.href) || isChildActive(item.children);
+            const childActive = isChildActive(item.children);
+            const active = isActive(item.href) || childActive;
             const hasChildren = item.children && item.children.length > 0;
             const isExpanded = expandedItems.includes(item.name);
 
@@ -210,23 +224,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed: externalCollapsed
                     <button
                       onClick={() => toggleExpand(item.name)}
                       className={`w-full flex items-center ${
-                        collapsed ? 'justify-center px-3' : 'justify-between px-4'
-                      } py-3 rounded-xl transition-all duration-200 ${
-                        active
-                          ? 'bg-blue-500/20 text-blue-400'
-                          : 'text-gray-400 hover:bg-gray-800/60 hover:text-white'
+                        collapsed ? 'justify-center px-2' : 'justify-between px-3'
+                      } py-2 rounded-lg transition-colors ${
+                        childActive
+                          ? 'bg-black/[0.06] dark:bg-white/[0.08] text-gray-900 dark:text-white'
+                          : 'text-gray-700 dark:text-gray-300 hover:bg-black/[0.05] dark:hover:bg-white/[0.06]'
                       }`}
                       title={collapsed ? item.name : undefined}
                     >
-                      <div className="flex items-center space-x-3">
-                        <Icon className={`w-5 h-5 ${active ? 'text-blue-400' : ''}`} />
-                        {!collapsed && (
-                          <span className="font-medium">{item.name}</span>
-                        )}
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <Icon className={`w-[18px] h-[18px] shrink-0 ${childActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'}`} />
+                        {!collapsed && <span className="text-sm font-medium truncate">{item.name}</span>}
                       </div>
                       {!collapsed && (
                         <ChevronRightIcon
-                          className={`w-4 h-4 transition-transform duration-200 ${
+                          className={`w-3.5 h-3.5 text-gray-400 dark:text-gray-500 transition-transform duration-200 ${
                             isExpanded ? 'rotate-90' : ''
                           }`}
                         />
@@ -235,18 +247,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed: externalCollapsed
 
                     {/* Children */}
                     {!collapsed && isExpanded && (
-                      <div className="mt-1 ml-4 pl-4 border-l border-gray-800 space-y-1">
+                      <div className="mt-0.5 ml-[26px] pl-2.5 border-l border-black/[0.08] dark:border-white/[0.08] space-y-0.5">
                         {item.children?.map((child) => {
-                          const childActive = pathname === child.href;
+                          const cActive = pathname === child.href;
                           return (
                             <Link
                               key={child.href}
                               href={child.href}
                               onClick={onClose}
-                              className={`block px-4 py-2.5 rounded-lg transition-all duration-200 ${
-                                childActive
-                                  ? 'bg-blue-500/20 text-blue-400 font-medium'
-                                  : 'text-gray-500 hover:text-white hover:bg-gray-800/40'
+                              className={`block px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                                cActive
+                                  ? 'bg-blue-500 text-white font-medium shadow-sm'
+                                  : 'text-gray-600 dark:text-gray-400 hover:bg-black/[0.05] dark:hover:bg-white/[0.06]'
                               }`}
                             >
                               {child.name}
@@ -261,18 +273,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed: externalCollapsed
                     href={item.href}
                     onClick={onClose}
                     className={`flex items-center ${
-                      collapsed ? 'justify-center px-3' : 'px-4'
-                    } py-3 rounded-xl transition-all duration-200 ${
+                      collapsed ? 'justify-center px-2' : 'px-3 gap-2.5'
+                    } py-2 rounded-lg transition-colors ${
                       active
-                        ? 'bg-blue-500/20 text-blue-400'
-                        : 'text-gray-400 hover:bg-gray-800/60 hover:text-white'
+                        ? 'bg-blue-500 text-white shadow-sm'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-black/[0.05] dark:hover:bg-white/[0.06]'
                     }`}
                     title={collapsed ? item.name : undefined}
                   >
-                    <Icon className={`w-5 h-5 ${active ? 'text-blue-400' : ''}`} />
-                    {!collapsed && (
-                      <span className="ml-3 font-medium">{item.name}</span>
-                    )}
+                    <Icon className={`w-[18px] h-[18px] shrink-0 ${active ? 'text-white' : 'text-gray-400 dark:text-gray-500'}`} />
+                    {!collapsed && <span className="text-sm font-medium">{item.name}</span>}
                   </Link>
                 )}
               </div>
@@ -282,37 +292,28 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed: externalCollapsed
       </nav>
 
       {/* User Profile & Logout */}
-      <div className="p-3 border-t border-gray-800">
+      <div className="p-2 border-t border-black/[0.06] dark:border-white/[0.08]">
         {!collapsed ? (
-          <div className="space-y-2">
-            <div className="flex items-center space-x-3 px-3 py-2 bg-gray-800/50 rounded-xl">
-              <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+          <div className="space-y-1.5">
+            <ThemeToggle />
+            <div className="flex items-center gap-2.5 px-2 py-2 bg-black/[0.04] dark:bg-white/[0.06] rounded-xl">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-xs shrink-0">
                 {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white truncate">
+                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                   {user?.firstName} {user?.lastName}
                 </p>
-                <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
               </div>
             </div>
             <button
-              onClick={async () => {
-                setIsLoggingOut(true);
-                try {
-                  await authService.logout();
-                  dispatch(clearUser());
-                  router.push('/login');
-                } catch (error) {
-                  console.error('Logout failed:', error);
-                  setIsLoggingOut(false);
-                }
-              }}
+              onClick={handleLogout}
               disabled={isLoggingOut}
-              className="w-full flex items-center justify-center space-x-2 px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl transition-colors disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-500/10 rounded-xl transition-colors disabled:opacity-50"
             >
               {isLoggingOut ? (
-                <div className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
               ) : (
                 <ArrowRightOnRectangleIcon className="w-4 h-4" />
               )}
@@ -320,28 +321,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed: externalCollapsed
             </button>
           </div>
         ) : (
+          <div className="space-y-1.5">
+          <ThemeToggle collapsed />
           <button
-            onClick={async () => {
-              setIsLoggingOut(true);
-              try {
-                await authService.logout();
-                dispatch(clearUser());
-                router.push('/login');
-              } catch (error) {
-                console.error('Logout failed:', error);
-                setIsLoggingOut(false);
-              }
-            }}
+            onClick={handleLogout}
             disabled={isLoggingOut}
-            className="w-full p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl transition-colors"
+            className="w-full p-2 text-red-600 dark:text-red-400 hover:bg-red-500/10 rounded-xl transition-colors"
             title="Sign Out"
           >
             {isLoggingOut ? (
-              <div className="w-5 h-5 border-2 border-red-400 border-t-transparent rounded-full animate-spin mx-auto" />
+              <div className="w-5 h-5 border-2 border-red-500 border-t-transparent rounded-full animate-spin mx-auto" />
             ) : (
               <ArrowRightOnRectangleIcon className="w-5 h-5 mx-auto" />
             )}
           </button>
+          </div>
         )}
       </div>
     </div>

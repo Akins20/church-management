@@ -104,8 +104,8 @@ export default function SettingsPage() {
       )}
 
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-4 md:px-6 py-4 shrink-0">
-        <h1 className="text-xl md:text-2xl font-bold text-gray-900">Settings</h1>
+      <div className="px-4 md:px-6 pt-5 pb-3 shrink-0">
+        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">Settings</h1>
         <p className="text-gray-500 text-sm mt-0.5">Manage your account settings and preferences</p>
       </div>
 

@@ -228,10 +228,10 @@ export default function MinistryDirectory() {
       )}
 
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-4 md:px-6 py-4 shrink-0">
+      <div className="px-4 md:px-6 pt-5 pb-3 shrink-0">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-xl md:text-2xl font-bold text-gray-900">Ministries</h1>
+            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">Ministries</h1>
             <p className="text-gray-500 text-sm mt-0.5">View and manage church ministries</p>
           </div>
           <button

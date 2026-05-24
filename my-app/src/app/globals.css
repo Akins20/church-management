@@ -8,18 +8,34 @@
   --background-end-rgb: 255, 255, 255;
 }
 
+html.dark {
+  color-scheme: dark;
+}
+
 body {
   color: rgb(var(--foreground-rgb));
   background: rgb(var(--background-end-rgb));
 }
 
-/* Ensure all form elements have visible black text by default */
+/* Dark canvas so even not-yet-themed screens read as dark */
+.dark body {
+  color: #e5e7eb;
+  background: #1c1c1e;
+}
+
+/* Form elements: visible text in both themes */
 @layer base {
   select,
   input,
   textarea,
   option {
     color: #111827;
+  }
+  .dark select,
+  .dark input,
+  .dark textarea,
+  .dark option {
+    color: #e5e7eb;
   }
 }
 
@@ -28,3 +44,78 @@ body {
     text-wrap: balance;
   }
 }
+
+/* =====================================================================
+   Global dark-mode mapping for neutral Tailwind utilities.
+   Lets every page adopt the dark theme without per-element dark: variants.
+   Colored utilities (blue/green/amber/etc.) are intentionally untouched so
+   accents/badges keep their hue. Pages with explicit dark: variants still
+   work (and override these where more specific).
+   ===================================================================== */
+.dark .bg-white { background-color: #2c2c2e; }
+.dark .bg-gray-50 { background-color: #1c1c1e; }
+.dark .bg-gray-100 { background-color: #3a3a3c; }
+.dark .bg-gray-200 { background-color: #48484a; }
+
+.dark .text-gray-900 { color: #f5f5f7; }
+.dark .text-gray-800 { color: #e5e5ea; }
+.dark .text-gray-700 { color: #d1d1d6; }
+.dark .text-gray-600 { color: #aeaeb2; }
+.dark .text-gray-500 { color: #98989d; }
+.dark .text-gray-400 { color: #8a8a8e; }
+
+.dark .border-gray-100 { border-color: rgba(255, 255, 255, 0.06); }
+.dark .border-gray-200 { border-color: rgba(255, 255, 255, 0.10); }
+.dark .border-gray-300 { border-color: rgba(255, 255, 255, 0.14); }
+.dark .ring-gray-200 { --tw-ring-color: rgba(255, 255, 255, 0.10); }
+
+.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]) { border-color: rgba(255, 255, 255, 0.06); }
+.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) { border-color: rgba(255, 255, 255, 0.10); }
+
+.dark .hover\:bg-gray-50:hover { background-color: rgba(255, 255, 255, 0.04); }
+.dark .hover\:bg-gray-100:hover { background-color: rgba(255, 255, 255, 0.08); }
+.dark .hover\:bg-gray-200:hover { background-color: rgba(255, 255, 255, 0.12); }
+.dark .focus\:bg-white:focus { background-color: #3a3a3c; }
+
+.dark .placeholder-gray-400::placeholder { color: #8a8a8e; }
+.dark .placeholder-gray-500::placeholder { color: #98989d; }
+
+/* Soft colored tints (badges, banners) -> translucent dark tints + lighter text
+   so accents stay legible on the dark canvas. */
+.dark .bg-blue-50 { background-color: rgba(59, 130, 246, 0.12); }
+.dark .bg-blue-100 { background-color: rgba(59, 130, 246, 0.20); }
+.dark .bg-indigo-50 { background-color: rgba(99, 102, 241, 0.12); }
+.dark .bg-indigo-100 { background-color: rgba(99, 102, 241, 0.20); }
+.dark .bg-violet-50 { background-color: rgba(139, 92, 246, 0.12); }
+.dark .bg-violet-100 { background-color: rgba(139, 92, 246, 0.20); }
+.dark .bg-purple-50 { background-color: rgba(168, 85, 247, 0.12); }
+.dark .bg-purple-100 { background-color: rgba(168, 85, 247, 0.20); }
+.dark .bg-emerald-50 { background-color: rgba(16, 185, 129, 0.12); }
+.dark .bg-emerald-100 { background-color: rgba(16, 185, 129, 0.20); }
+.dark .bg-green-50 { background-color: rgba(34, 197, 94, 0.12); }
+.dark .bg-green-100 { background-color: rgba(34, 197, 94, 0.20); }
+.dark .bg-amber-50 { background-color: rgba(245, 158, 11, 0.12); }
+.dark .bg-amber-100 { background-color: rgba(245, 158, 11, 0.20); }
+.dark .bg-yellow-50 { background-color: rgba(234, 179, 8, 0.12); }
+.dark .bg-yellow-100 { background-color: rgba(234, 179, 8, 0.20); }
+.dark .bg-orange-50 { background-color: rgba(249, 115, 22, 0.12); }
+.dark .bg-orange-100 { background-color: rgba(249, 115, 22, 0.20); }
+.dark .bg-red-50 { background-color: rgba(239, 68, 68, 0.12); }
+.dark .bg-red-100 { background-color: rgba(239, 68, 68, 0.20); }
+.dark .bg-rose-50 { background-color: rgba(244, 63, 94, 0.12); }
+.dark .bg-rose-100 { background-color: rgba(244, 63, 94, 0.20); }
+.dark .bg-pink-50 { background-color: rgba(236, 72, 153, 0.12); }
+.dark .bg-pink-100 { background-color: rgba(236, 72, 153, 0.20); }
+
+.dark .text-blue-600, .dark .text-blue-700, .dark .text-blue-800, .dark .text-blue-900 { color: #60a5fa; }
+.dark .text-indigo-600, .dark .text-indigo-700, .dark .text-indigo-900 { color: #818cf8; }
+.dark .text-violet-600, .dark .text-violet-700 { color: #a78bfa; }
+.dark .text-purple-600, .dark .text-purple-700, .dark .text-purple-900 { color: #c084fc; }
+.dark .text-emerald-600, .dark .text-emerald-700 { color: #34d399; }
+.dark .text-green-600, .dark .text-green-700, .dark .text-green-800, .dark .text-green-900 { color: #4ade80; }
+.dark .text-amber-600, .dark .text-amber-700, .dark .text-amber-800, .dark .text-amber-900 { color: #fbbf24; }
+.dark .text-yellow-600, .dark .text-yellow-700, .dark .text-yellow-800, .dark .text-yellow-900 { color: #facc15; }
+.dark .text-orange-600, .dark .text-orange-700, .dark .text-orange-900 { color: #fb923c; }
+.dark .text-red-600, .dark .text-red-700, .dark .text-red-800, .dark .text-red-900 { color: #f87171; }
+.dark .text-rose-600, .dark .text-rose-700 { color: #fb7185; }
+.dark .text-pink-600, .dark .text-pink-700 { color: #f472b6; }

@@ -144,21 +144,30 @@ export default function AttendanceOverview() {
   return (
     <div className="min-h-full flex flex-col bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-4 md:px-6 py-4 shrink-0">
+      <div className="px-4 md:px-6 pt-5 pb-3 shrink-0">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-xl md:text-2xl font-bold text-gray-900">Attendance</h1>
+            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">Attendance</h1>
             <p className="text-gray-500 text-xs md:text-sm mt-0.5 hidden sm:block">
               View attendance records by date
             </p>
           </div>
-          <Link
-            href="/people/checkin"
-            className="flex items-center justify-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-xl transition-colors text-sm"
-          >
-            <ClipboardDocumentCheckIcon className="w-4 h-4 mr-2" />
-            Check-in
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/attendance/history"
+              className="flex items-center justify-center px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-medium rounded-xl transition-colors text-sm"
+            >
+              <ChartBarIcon className="w-4 h-4 mr-2" />
+              History by group
+            </Link>
+            <Link
+              href="/people/checkin"
+              className="flex items-center justify-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-xl transition-colors text-sm"
+            >
+              <ClipboardDocumentCheckIcon className="w-4 h-4 mr-2" />
+              Check-in
+            </Link>
+          </div>
         </div>
       </div>
 
