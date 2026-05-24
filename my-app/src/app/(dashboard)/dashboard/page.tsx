@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAppSelector } from '@/store/hooks';
 import { selectUser, selectUserRole } from '@/store/slices/authSlice';
-import { attendanceService, serviceService, noteService, ministryService } from '@/services';
+import { attendanceService, serviceService, noteService, ministryService, userService } from '@/services';
 import {
   UserGroupIcon,
   ChartBarIcon,
