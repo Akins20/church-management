@@ -1,15 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { activityService } from '@/services';
-import type { ActivityLogEntry } from '@/services/activity.service';
+import type { ActivityLogEntry, DigestConfig } from '@/services/activity.service';
 import {
   ArrowDownTrayIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   MagnifyingGlassIcon,
   ClipboardDocumentListIcon,
+  EnvelopeIcon,
+  PaperAirplaneIcon,
 } from '@heroicons/react/24/outline';
 
 const CATEGORIES = ['auth', 'user', 'attendance', 'ministry', 'department', 'email', 'media', 'settings', 'other'];
@@ -75,6 +77,50 @@ export default function ActivityLogPage() {
     queryFn: () => activityService.actions(),
   });
 
+  // --- Email digest config ---
+  const queryClient = useQueryClient();
+  const [showDigest, setShowDigest] = useState(false);
+  const [digestMsg, setDigestMsg] = useState<string | null>(null);
+  const [digestForm, setDigestForm] = useState<{
+    enabled: boolean;
+    frequency: DigestConfig['frequency'];
+    cron: string;
+    recipients: string;
+  }>({ enabled: false, frequency: 'weekly', cron: '', recipients: '' });
+
+  const { data: digest } = useQuery({
+    queryKey: ['activity', 'digest'],
+    queryFn: () => activityService.getDigest(),
+  });
+  useEffect(() => {
+    if (digest) {
+      setDigestForm({
+        enabled: digest.enabled,
+        frequency: digest.frequency,
+        cron: digest.cron || '',
+        recipients: (digest.recipients || []).join(', '),
+      });
+    }
+  }, [digest]);
+
+  const flash = (m: string) => { setDigestMsg(m); setTimeout(() => setDigestMsg(null), 2800); };
+  const saveDigest = useMutation({
+    mutationFn: () =>
+      activityService.updateDigest({
+        enabled: digestForm.enabled,
+        frequency: digestForm.frequency,
+        cron: digestForm.frequency === 'custom' ? digestForm.cron : undefined,
+        recipients: digestForm.recipients.split(',').map((s) => s.trim()).filter(Boolean),
+      }),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['activity', 'digest'] }); flash('Digest settings saved'); },
+    onError: () => flash('Failed to save settings'),
+  });
+  const sendNow = useMutation({
+    mutationFn: () => activityService.sendDigestNow(),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['activity', 'digest'] }); flash('Digest sent'); },
+    onError: () => flash('Failed to send digest'),
+  });
+
   const logs = data?.logs ?? [];
   const total = data?.total ?? 0;
   const totalPages = data?.totalPages ?? 1;
@@ -90,14 +136,98 @@ export default function ActivityLogPage() {
             <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">Activity Log</h1>
             <p className="text-gray-500 dark:text-gray-400 text-sm mt-0.5">{total} recorded {total === 1 ? 'event' : 'events'}</p>
           </div>
-          <button
-            onClick={() => activityService.exportCsv(filters)}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors shrink-0"
-          >
-            <ArrowDownTrayIcon className="w-4 h-4" />
-            Export CSV
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => setShowDigest((s) => !s)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-white/[0.06] ring-1 ring-black/5 dark:ring-white/[0.08] text-gray-700 dark:text-gray-200 text-sm font-medium hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
+            >
+              <EnvelopeIcon className="w-4 h-4" />
+              Digest
+            </button>
+            <button
+              onClick={() => activityService.exportCsv(filters)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors"
+            >
+              <ArrowDownTrayIcon className="w-4 h-4" />
+              Export CSV
+            </button>
+          </div>
         </div>
+
+        {/* Email digest config */}
+        {showDigest && (
+          <div className={`${card} p-4 space-y-3`}>
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-semibold text-gray-900 dark:text-white">Email digest</h2>
+              {digestMsg && <span className="text-xs text-emerald-600 dark:text-emerald-400">{digestMsg}</span>}
+            </div>
+            <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+              <input
+                type="checkbox"
+                checked={digestForm.enabled}
+                onChange={(e) => setDigestForm({ ...digestForm, enabled: e.target.checked })}
+                className="rounded"
+              />
+              Email an activity digest automatically
+            </label>
+            <div className="flex flex-wrap items-end gap-3">
+              <div>
+                <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1">Frequency</label>
+                <select
+                  value={digestForm.frequency}
+                  onChange={(e) => setDigestForm({ ...digestForm, frequency: e.target.value as DigestConfig['frequency'] })}
+                  className="px-2.5 py-2 bg-gray-100 dark:bg-white/[0.06] border border-transparent rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="weekly">Weekly (Mondays)</option>
+                  <option value="monthly">Monthly (1st)</option>
+                  <option value="custom">Custom (cron)</option>
+                </select>
+              </div>
+              {digestForm.frequency === 'custom' && (
+                <div>
+                  <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1">Cron expression</label>
+                  <input
+                    value={digestForm.cron}
+                    onChange={(e) => setDigestForm({ ...digestForm, cron: e.target.value })}
+                    placeholder="0 8 * * 1"
+                    className="px-2.5 py-2 bg-gray-100 dark:bg-white/[0.06] border border-transparent rounded-xl text-sm text-gray-900 dark:text-gray-100 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              )}
+              <div className="flex-1 min-w-[200px]">
+                <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1">Recipients (comma-separated, blank = admin email)</label>
+                <input
+                  value={digestForm.recipients}
+                  onChange={(e) => setDigestForm({ ...digestForm, recipients: e.target.value })}
+                  placeholder="admin@church.org, pastor@church.org"
+                  className="w-full px-2.5 py-2 bg-gray-100 dark:bg-white/[0.06] border border-transparent rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                onClick={() => saveDigest.mutate()}
+                disabled={saveDigest.isPending}
+                className="px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+              >
+                {saveDigest.isPending ? 'Saving…' : 'Save settings'}
+              </button>
+              <button
+                onClick={() => sendNow.mutate()}
+                disabled={sendNow.isPending}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white dark:bg-white/[0.06] ring-1 ring-black/5 dark:ring-white/[0.08] text-gray-700 dark:text-gray-200 text-sm font-medium hover:bg-gray-50 dark:hover:bg-white/10 disabled:opacity-50"
+              >
+                <PaperAirplaneIcon className="w-4 h-4" />
+                {sendNow.isPending ? 'Sending…' : 'Send now'}
+              </button>
+              {digest?.lastSentAt && (
+                <span className="text-xs text-gray-400 dark:text-gray-500 ml-auto">
+                  Last sent {new Date(digest.lastSentAt).toLocaleString()}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Filters */}
         <div className={`${card} p-3 flex flex-wrap items-end gap-2.5`}>
@@ -174,11 +304,10 @@ export default function ActivityLogPage() {
                     {actorInitials(label)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-900 dark:text-gray-100 truncate">
-                      <span className="font-medium">{label}</span>{' '}
-                      <span className="text-gray-500 dark:text-gray-400">— {e.description}</span>
+                    <p className="text-sm text-gray-900 dark:text-gray-100 truncate">{e.description}</p>
+                    <p className="text-[11px] text-gray-400 dark:text-gray-500 truncate">
+                      {label} · {fmt(e.createdAt)}{e.ip ? ` · ${e.ip}` : ''}
                     </p>
-                    <p className="text-[11px] text-gray-400 dark:text-gray-500">{fmt(e.createdAt)}{e.ip ? ` · ${e.ip}` : ''}</p>
                   </div>
                   <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium shrink-0 capitalize ${CATEGORY_STYLE[e.category] || CATEGORY_STYLE.other}`}>
                     {e.category}

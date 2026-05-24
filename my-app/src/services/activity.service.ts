@@ -52,6 +52,15 @@ const toParams = (filters: ActivityFilters) => {
   return p;
 };
 
+export interface DigestConfig {
+  enabled: boolean;
+  frequency: 'weekly' | 'monthly' | 'custom';
+  cron?: string;
+  recipients: string[];
+  lastSentAt?: string;
+  lastStatus?: string;
+}
+
 export const activityService = {
   list: async (filters: ActivityFilters, page = 1, limit = 25): Promise<ActivityListResult> => {
     const response = await apiClient.get('/activity', { params: { ...toParams(filters), page, limit } });
@@ -77,5 +86,19 @@ export const activityService = {
     a.click();
     a.remove();
     window.URL.revokeObjectURL(url);
+  },
+
+  getDigest: async (): Promise<DigestConfig> => {
+    const response = await apiClient.get('/activity/digest');
+    return extractData<{ config: DigestConfig }>(response).config;
+  },
+
+  updateDigest: async (data: Partial<DigestConfig>): Promise<DigestConfig> => {
+    const response = await apiClient.put('/activity/digest', data);
+    return extractData<{ config: DigestConfig }>(response).config;
+  },
+
+  sendDigestNow: async (): Promise<void> => {
+    await apiClient.post('/activity/digest/send');
   },
 };
